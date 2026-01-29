@@ -4,24 +4,24 @@
  * Persistent "What was I doing?" reminder with breadcrumbs
  */
 
-import { useStore } from '@nanostores/react';
-import { $contextState, $needsBreakReminder, $focusSessionDuration } from '../../../../old-frontend/src/stores/ndStore';
-import { $tasks, $selectedTaskId, selectTask } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { $currentSection } from '../../../../old-frontend/src/stores/settingsStore';
+import { useNDStore } from '../../stores/ndStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { selectTask } from '../../stores/tasksStore';
 import { Clock, ArrowLeft, Coffee } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 export function ContextPanel() {
-  const contextState = useStore($contextState);
-  const tasks = useStore($tasks);
-  const selectedTaskId = useStore($selectedTaskId);
-  const currentSection = useStore($currentSection);
-  const settings = useStore($settings);
-  const needsBreak = useStore($needsBreakReminder);
-  const focusDuration = useStore($focusSessionDuration);
+  const contextState = useNDStore((s) => s.contextState);
+  const tasks = useTasksStore((s) => s.tasks);
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const currentSection = useSettingsStore((s) => s.currentSection);
+  const contextReminders = useSettingsStore((s) => s.ndSettings?.contextReminders);
+  const hyperfocusBreaks = useSettingsStore((s) => s.ndSettings?.hyperfocusBreaks);
+  const needsBreak = useNDStore((s) => s.needsBreakReminder());
+  const focusDuration = useNDStore((s) => s.getFocusSessionDuration());
 
-  if (!settings.ndSettings?.contextReminders) {
+  if (!contextReminders) {
     return null;
   }
 
@@ -80,7 +80,7 @@ export function ContextPanel() {
       )}
 
       {/* Break Reminder */}
-      {needsBreak && settings.ndSettings?.hyperfocusBreaks && (
+      {needsBreak && hyperfocusBreaks && (
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
           <div className="flex items-center gap-2 text-orange-800">
             <Coffee className="w-4 h-4" />

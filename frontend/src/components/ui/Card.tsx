@@ -5,8 +5,7 @@
  */
 
 import { type ReactNode } from 'react';
-import { useStore } from '@nanostores/react';
-import { $settings } from '../../stores/settingsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 export interface CardProps {
   children: ReactNode;
@@ -25,13 +24,14 @@ export function Card({
   onClick,
   'aria-label': ariaLabel,
 }: CardProps) {
-  const settings = useStore($settings);
+  const density = useSettingsStore((s) => s.density);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
 
   const paddingClasses = {
     none: '',
-    sm: settings.density === 'compact' ? 'p-3' : 'p-4',
-    md: settings.density === 'compact' ? 'p-4' : 'p-6',
-    lg: settings.density === 'compact' ? 'p-6' : 'p-8',
+    sm: density === 'compact' ? 'p-3' : 'p-4',
+    md: density === 'compact' ? 'p-4' : 'p-6',
+    lg: density === 'compact' ? 'p-6' : 'p-8',
   };
 
   const variantClasses = {
@@ -41,7 +41,7 @@ export function Card({
   };
 
   const baseClasses = 'rounded-xl border';
-  const transitionClass = settings.reduceMotion ? '' : 'transition-colors duration-150';
+  const transitionClass = reduceMotion ? '' : 'transition-colors duration-150';
   const interactiveClass = onClick ? 'cursor-pointer hover:border-theme-accent/50' : '';
 
   const classes = [

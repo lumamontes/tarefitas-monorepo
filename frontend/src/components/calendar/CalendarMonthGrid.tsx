@@ -4,9 +4,8 @@
  * ND-safe: Clean, simple, no pressure
  */
 
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { useStore } from '@nanostores/react';
-import { formatDateLocal, getTodayString, parseDateLocal } from '../../../../old-frontend/src/utils/dateUtils';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { formatDateLocal, getTodayString, parseDateLocal } from '../../shared/lib/time.utils';
 import { useState, useEffect, useRef } from 'react';
 import { CalendarDayCell } from './CalendarDayCell';
 
@@ -31,7 +30,7 @@ export function CalendarMonthGrid({
   onDateSelect,
   onMonthChange 
 }: CalendarMonthGridProps) {
-  const settings = useStore($settings);
+  const fontScale = useSettingsStore((s) => s.fontScale);
   const [focusedDate, setFocusedDate] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -208,9 +207,9 @@ export function CalendarMonthGrid({
           <div
             key={day}
             className={`text-center font-medium text-theme-muted py-2 ${
-              settings.fontScale === 'sm' ? 'text-xs' :
-              settings.fontScale === 'lg' ? 'text-sm' :
-              settings.fontScale === 'xl' ? 'text-base' :
+              fontScale === 'sm' ? 'text-xs' :
+              fontScale === 'lg' ? 'text-sm' :
+              fontScale === 'xl' ? 'text-base' :
               'text-xs'
             }`}
             role="columnheader"

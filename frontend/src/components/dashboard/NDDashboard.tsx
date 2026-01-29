@@ -4,11 +4,11 @@
  * Single focus area design to prevent overwhelm
  */
 
-import { useStore } from '@nanostores/react';
-import { $settings } from '../../stores/settingsStore';
-import { $tasks, $selectedTaskId } from '../../stores/tasksStore';
-import { $contextState, shouldShowCelebration, getCelebrationLevel, $streakMessage } from '../../stores/ndStore';
 import { useState, useEffect } from 'react';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useNDStore } from '../../stores/ndStore';
+import { shouldShowCelebration, getCelebrationLevel } from '../../stores/ndStore';
 
 // ND-specific components
 import { TodaysPriorities } from '../executive/TodaysPriorities';
@@ -20,11 +20,12 @@ import { CelebrationOverlay } from '../celebration/CelebrationOverlay';
 import { RoutineTemplates } from '../routines/RoutineTemplates';
 
 export function NDDashboard() {
-  const settings = useStore($settings);
-  const tasks = useStore($tasks);
-  const selectedTaskId = useStore($selectedTaskId);
-  const contextState = useStore($contextState);
-  const streakMessage = useStore($streakMessage);
+  const ndSettings = useSettingsStore((s) => s.ndSettings);
+  const tasks = useTasksStore((s) => s.tasks);
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const contextState = useNDStore((s) => s.contextState);
+  const getStreakMessage = useNDStore((s) => s.getStreakMessage);
+  const streakMessage = getStreakMessage();
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationLevel, setCelebrationLevel] = useState<'small' | 'medium' | 'large'>('small');
@@ -42,7 +43,7 @@ export function NDDashboard() {
   };
 
   // Determine what to show based on executive load setting
-  const executiveLoad = settings.ndSettings?.executiveLoad || 'standard';
+  const executiveLoad = ndSettings?.executiveLoad || 'standard';
   const isMinimalMode = executiveLoad === 'minimal';
 
   return (

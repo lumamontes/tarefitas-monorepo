@@ -3,12 +3,13 @@
  * Interactive navigation buttons for sidebar sections
  */
 
-import { useStore } from '@nanostores/react';
-import { $currentSection, setCurrentSection } from '../../../../old-frontend/src/stores/settingsStore';
-import type { Section } from '../../../../old-frontend/src/types';
-  import { CheckSquare, Calendar, Timer, Settings } from 'lucide-react';
+import { useSettingsStore } from '../../stores/settingsStore';
+import type { Section } from '../../types';
+import { CheckSquare, Calendar, Timer, Settings } from 'lucide-react';
+
 export function SidebarNavigation() {
-  const currentSection = useStore($currentSection);
+  const currentSection = useSettingsStore((s) => s.currentSection);
+  const setCurrentSection = useSettingsStore((s) => s.setCurrentSection);
 
   const sections: Array<{ id: Section | 'configuracoes'; label: string, icon: React.ReactNode }> = [
     { id: 'tasks', label: 'Tarefas' , icon: <CheckSquare /> },

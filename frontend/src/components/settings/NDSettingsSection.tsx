@@ -3,27 +3,29 @@
  * Settings panel specifically for neurodivergent-friendly features
  */
 
-import { useStore } from '@nanostores/react';
-import { $settings, updateNDSettings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+
+const defaultNDSettings = {
+  stimLevel: 'optimal' as const,
+  focusMode: 'attention-support' as const,
+  changeAnxiety: 'medium' as const,
+  executiveLoad: 'standard' as const,
+  animationIntensity: 'minimal' as const,
+  colorContrast: 'medium' as const,
+  texturePatterns: false,
+  focusRingStyle: 'subtle' as const,
+  celebrationStyle: 'minimal' as const,
+  streakTracking: true,
+  contextReminders: true,
+  routineTemplates: true,
+  randomizeOrder: false,
+  hyperfocusBreaks: true
+};
 
 export function NDSettingsSection() {
-  const settings = useStore($settings);
-  const ndSettings = settings.ndSettings || {
-    stimLevel: 'optimal' as const,
-    focusMode: 'attention-support' as const,
-    changeAnxiety: 'medium' as const,
-    executiveLoad: 'standard' as const,
-    animationIntensity: 'minimal' as const,
-    colorContrast: 'medium' as const,
-    texturePatterns: false,
-    focusRingStyle: 'subtle' as const,
-    celebrationStyle: 'minimal' as const,
-    streakTracking: true,
-    contextReminders: true,
-    routineTemplates: true,
-    randomizeOrder: false,
-    hyperfocusBreaks: true
-  };
+  const ndSettingsRaw = useSettingsStore((s) => s.ndSettings);
+  const updateNDSettings = useSettingsStore((s) => s.updateNDSettings);
+  const ndSettings = ndSettingsRaw || defaultNDSettings;
 
   const handleToggle = (key: keyof typeof ndSettings, value: boolean) => {
     updateNDSettings({ [key]: value });

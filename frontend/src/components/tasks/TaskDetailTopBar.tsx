@@ -4,8 +4,8 @@
  */
 
 import { useState } from 'react';
-import { updateTask } from '../../../../old-frontend/src/stores/tasksStore';
-import type { Task } from '../../../../old-frontend/src/types';
+import { updateTask } from '../../stores/tasksStore';
+import type { Task } from '../../types';
 
 interface TaskDetailTopBarProps {
   task: Task;

@@ -4,16 +4,15 @@
  */
 
 import { useState } from 'react';
-import { useStore } from '@nanostores/react';
-import { $selectedTaskSubtasks } from '../../../../old-frontend/src/stores/tasksStore';
-import { setCurrentSection } from '../../../../old-frontend/src/stores/settingsStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { setCurrentSection } from '../../stores/settingsStore';
 
 interface StartButtonProps {
   taskId: string;
 }
 
 export function StartButton({ taskId }: StartButtonProps) {
-  const subtasks = useStore($selectedTaskSubtasks);
+  const subtasks = useTasksStore((s) => s.getSelectedTaskSubtasks());
   const [showInitiation, setShowInitiation] = useState(false);
   const [selectedSubtask, setSelectedSubtask] = useState<string | null>(null);
   

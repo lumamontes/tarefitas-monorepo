@@ -4,40 +4,28 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useStore } from '@nanostores/react';
-import {
-  $minutes,
-  $seconds,
-  $mode,
-  $isActive,
-  $hasFinished,
-  startCountdown,
-  pauseCountdown,
-  resetCountdown,
-  nextMode,
-} from '../../../../old-frontend/src/stores/pomodoroStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import {
-  $miniTimer,
-  setMiniTimerPosition,
-  toggleMiniTimerCollapsed,
-  disableMiniTimer,
-} from '../../../../old-frontend/src/stores/miniTimerStore';
-import { $selectedTask } from '../../../../old-frontend/src/stores/tasksStore';
+import { usePomodoroStore } from '../../stores/pomodoroStore';
+import { pausePomodoroCountdown, startPomodoroCountdown, resetPomodoroCountdown, nextPomodoroMode } from '../../stores/pomodoroStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useMiniTimerStore } from '../../stores/miniTimerStore';
+import { setMiniTimerPosition, toggleMiniTimerCollapsed, disableMiniTimer } from '../../stores/miniTimerStore';
+import { useTasksStore } from '../../stores/tasksStore';
 
 const MINI_TIMER_WIDTH = 280;
 const MINI_TIMER_HEIGHT = 180;
 const SAFE_MARGIN = 24;
 
 export function MiniPomodoro() {
-  const minutes = useStore($minutes);
-  const seconds = useStore($seconds);
-  const mode = useStore($mode);
-  const isActive = useStore($isActive);
-  const hasFinished = useStore($hasFinished);
-  const settings = useStore($settings);
-  const miniTimer = useStore($miniTimer);
-  const selectedTask = useStore($selectedTask);
+  const minutes = usePomodoroStore((s) => s.minutes);
+  const seconds = usePomodoroStore((s) => s.seconds);
+  const mode = usePomodoroStore((s) => s.mode);
+  const isActive = usePomodoroStore((s) => s.isActive);
+  const hasFinished = usePomodoroStore((s) => s.hasFinished);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const miniEnabled = useMiniTimerStore((s) => s.miniEnabled);
+  const miniPosition = useMiniTimerStore((s) => s.miniPosition);
+  const miniCollapsed = useMiniTimerStore((s) => s.miniCollapsed);
+  const selectedTask = useTasksStore((s) => s.getSelectedTask());
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -45,14 +33,14 @@ export function MiniPomodoro() {
 
   // Initialize position if not set
   useEffect(() => {
-    if (!miniTimer.miniPosition && containerRef.current) {
+    if (!miniPosition && containerRef.current) {
       const defaultPosition = {
         x: window.innerWidth - MINI_TIMER_WIDTH - SAFE_MARGIN,
         y: window.innerHeight - MINI_TIMER_HEIGHT - SAFE_MARGIN,
       };
       setMiniTimerPosition(defaultPosition);
     }
-  }, [miniTimer.miniPosition]);
+  }, [miniPosition]);
 
   // Handle dragging
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -99,17 +87,17 @@ export function MiniPomodoro() {
   // Keyboard handler (Escape to close)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && miniTimer.miniEnabled) {
+      if (e.key === 'Escape' && miniEnabled) {
         disableMiniTimer();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [miniTimer.miniEnabled]);
+  }, [miniEnabled]);
 
   // Don't render if not enabled
-  if (!miniTimer.miniEnabled) return null;
+  if (!miniEnabled) return null;
 
   const formatTime = (mins: number, secs: number) => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -128,7 +116,7 @@ export function MiniPomodoro() {
     }
   };
 
-  const position = miniTimer.miniPosition || {
+  const position = miniPosition || {
     x: window.innerWidth - MINI_TIMER_WIDTH - SAFE_MARGIN,
     y: window.innerHeight - MINI_TIMER_HEIGHT - SAFE_MARGIN,
   };
@@ -142,7 +130,7 @@ export function MiniPomodoro() {
         top: `${position.y}px`,
         width: `${MINI_TIMER_WIDTH}px`,
         cursor: isDragging ? 'grabbing' : 'grab',
-        transition: settings.reduceMotion ? 'none' : 'transform 0.2s ease-out',
+        transition: reduceMotion ? 'none' : 'transform 0.2s ease-out',
       }}
       role="dialog"
       aria-label="Mini Pomodoro Timer"
@@ -151,7 +139,7 @@ export function MiniPomodoro() {
       <div
         className={`
           bg-theme-panel border border-theme-border rounded-xl shadow-lg
-          ${settings.reduceMotion ? '' : 'transition-shadow duration-200'}
+          ${reduceMotion ? '' : 'transition-shadow duration-200'}
           ${isDragging ? 'shadow-2xl' : 'shadow-lg'}
         `}
         onMouseDown={handleMouseDown}
@@ -180,7 +168,7 @@ export function MiniPomodoro() {
             <button
               onClick={toggleMiniTimerCollapsed}
               className="p-1 rounded hover:bg-theme-sidebar text-theme-muted hover:text-theme-text transition-colors"
-              aria-label={miniTimer.miniCollapsed ? 'Expandir' : 'Minimizar'}
+              aria-label={miniCollapsed ? 'Expandir' : 'Minimizar'}
             >
               <svg
                 className="w-4 h-4"
@@ -227,7 +215,7 @@ export function MiniPomodoro() {
           </div>
         </div>
 
-        {!miniTimer.miniCollapsed && (
+        {!miniCollapsed && (
           <div className="p-4">
             {/* Time Display */}
             <div className="text-center mb-4">
@@ -245,7 +233,7 @@ export function MiniPomodoro() {
             <div className="flex items-center justify-center gap-2">
               {isActive ? (
                 <button
-                  onClick={pauseCountdown}
+                  onClick={pausePomodoroCountdown}
                   className="px-3 py-1.5 bg-theme-sidebar hover:bg-theme-border text-theme-text rounded-lg text-sm font-medium transition-colors focus-ring"
                   aria-label="Pausar"
                 >
@@ -266,7 +254,7 @@ export function MiniPomodoro() {
                 </button>
               ) : (
                 <button
-                  onClick={startCountdown}
+                  onClick={startPomodoroCountdown}
                   className="px-3 py-1.5 bg-theme-accent hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors focus-ring"
                   aria-label="Iniciar"
                 >
@@ -293,7 +281,7 @@ export function MiniPomodoro() {
                 </button>
               )}
               <button
-                onClick={resetCountdown}
+                onClick={resetPomodoroCountdown}
                 className="px-3 py-1.5 bg-theme-sidebar hover:bg-theme-border text-theme-text rounded-lg text-sm font-medium transition-colors focus-ring"
                 aria-label="Reiniciar"
               >
@@ -313,7 +301,7 @@ export function MiniPomodoro() {
               </button>
               {hasFinished && (
                 <button
-                  onClick={nextMode}
+                  onClick={nextPomodoroMode}
                   className="px-3 py-1.5 bg-theme-accent hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors focus-ring"
                   aria-label="Próximo modo"
                 >

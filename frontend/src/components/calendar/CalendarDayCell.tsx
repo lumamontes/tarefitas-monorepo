@@ -4,10 +4,9 @@
  * ND-safe: Simple, clear, no pressure indicators
  */
 
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { useStore } from '@nanostores/react';
-import { getTaskCountForDate } from '../../../../old-frontend/src/stores/tasksStore';
-import { getTodayString, parseDateLocal } from '../../../../old-frontend/src/utils/dateUtils';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { getTaskCountForDate } from '../../stores/tasksStore';
+import { getTodayString, parseDateLocal } from '../../shared/lib/time.utils';
 
 interface CalendarDayCellProps {
   day: number;
@@ -34,11 +33,12 @@ export function CalendarDayCell({
   onSelect,
   tabIndex = -1
 }: CalendarDayCellProps) {
-  const settings = useStore($settings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const fontScale = useSettingsStore((s) => s.fontScale);
   const taskCount = getTaskCountForDate(dateStr);
   const hasTasks = taskCount > 0;
-  
-  const transitionClass = settings.reduceMotion ? '' : 'transition-all duration-150';
+
+  const transitionClass = reduceMotion ? '' : 'transition-all duration-150';
   
   // Determine if weekend (subtle tinting)
   const date = parseDateLocal(dateStr);
@@ -83,9 +83,9 @@ export function CalendarDayCell({
       <div className="flex flex-col items-center justify-center h-full">
         {/* Day Number */}
         <span className={`${
-          settings.fontScale === 'sm' ? 'text-xs' :
-          settings.fontScale === 'lg' ? 'text-base' :
-          settings.fontScale === 'xl' ? 'text-lg' :
+          fontScale === 'sm' ? 'text-xs' :
+          fontScale === 'lg' ? 'text-base' :
+          fontScale === 'xl' ? 'text-lg' :
           'text-sm'
         }`}>
           {day}

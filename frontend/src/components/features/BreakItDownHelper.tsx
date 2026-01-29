@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { addSubtask } from '../../../../old-frontend/src/stores/tasksStore';
+import { addSubtask } from '../../stores/tasksStore';
 
 interface BreakItDownHelperProps {
   taskId: string;

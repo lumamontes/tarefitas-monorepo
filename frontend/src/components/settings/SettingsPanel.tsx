@@ -3,8 +3,7 @@
  * ND-friendly settings with accessibility options
  */
 
-import { useStore } from '@nanostores/react';
-import { $settings, updateSettings, updatePomodoroSettings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { useState } from 'react';
 
 interface SettingsPanelProps {
@@ -13,7 +12,15 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
-  const settings = useStore($settings);
+  const showProgressBars = useSettingsStore((s) => s.showProgressBars);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const soundEnabled = useSettingsStore((s) => s.soundEnabled);
+  const themeId = useSettingsStore((s) => s.themeId);
+  const fontScale = useSettingsStore((s) => s.fontScale);
+  const density = useSettingsStore((s) => s.density);
+  const pomodoro = useSettingsStore((s) => s.pomodoro);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const updatePomodoroSettings = useSettingsStore((s) => s.updatePomodoroSettings);
 
   if (!isOpen) return null;
 
@@ -58,14 +65,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     <p className="text-xs text-theme-muted">Ajuda a visualizar o andamento das tarefas</p>
                   </div>
                   <button
-                    onClick={() => updateSettings({ showProgressBars: !settings.showProgressBars })}
+                    onClick={() => updateSettings({ showProgressBars: !showProgressBars })}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.showProgressBars ? 'bg-theme-accent' : 'bg-theme-border'
+                      showProgressBars ? 'bg-theme-accent' : 'bg-theme-border'
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-theme-sidebar transition-transform ${
-                        settings.showProgressBars ? 'translate-x-6' : 'translate-x-1'
+                        showProgressBars ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
                   </button>
@@ -78,14 +85,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     <p className="text-xs text-theme-muted">Minimiza animações para conforto sensorial</p>
                   </div>
                   <button
-                    onClick={() => updateSettings({ reduceMotion: !settings.reduceMotion })}
+                    onClick={() => updateSettings({ reduceMotion: !reduceMotion })}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.reduceMotion ? 'bg-theme-accent' : 'bg-theme-border'
+                      reduceMotion ? 'bg-theme-accent' : 'bg-theme-border'
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-theme-sidebar transition-transform ${
-                        settings.reduceMotion ? 'translate-x-6' : 'translate-x-1'
+                        reduceMotion ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
                   </button>
@@ -98,14 +105,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     <p className="text-xs text-theme-muted">Notificações sonoras opcionais</p>
                   </div>
                   <button
-                    onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
+                    onClick={() => updateSettings({ soundEnabled: !soundEnabled })}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.soundEnabled ? 'bg-theme-accent' : 'bg-theme-border'
+                      soundEnabled ? 'bg-theme-accent' : 'bg-theme-border'
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-theme-sidebar transition-transform ${
-                        settings.soundEnabled ? 'translate-x-6' : 'translate-x-1'
+                        soundEnabled ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
                   </button>
@@ -122,9 +129,9 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     ].map(theme => (
                       <button
                         key={theme.value}
-                        onClick={() => updateSettings({ theme: theme.value as any })}
+                        onClick={() => updateSettings({ themeId: theme.value as any })}
                         className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                          settings.theme === theme.value 
+                          themeId === theme.value 
                             ? 'bg-theme-panel text-theme-text border border-theme-accent'
                             : 'hover:bg-theme-bg border border-theme-border'
                         }`}
@@ -146,9 +153,9 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     ].map(size => (
                       <button
                         key={size.value}
-                        onClick={() => updateSettings({ fontSize: size.value as any })}
+                        onClick={() => updateSettings({ fontScale: size.value as any })}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                          settings.fontSize === size.value 
+                          fontScale === size.value 
                             ? 'bg-theme-panel text-theme-text border border-theme-accent'
                             : 'hover:bg-theme-bg border border-theme-border'
                         }`}
@@ -166,17 +173,17 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     {[
                       { value: 'cozy', label: 'Confortável' },
                       { value: 'compact', label: 'Compacta' }
-                    ].map(density => (
+                    ].map((densityOption) => (
                       <button
-                        key={density.value}
-                        onClick={() => updateSettings({ density: density.value as any })}
+                        key={densityOption.value}
+                        onClick={() => updateSettings({ density: densityOption.value as any })}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                          settings.density === density.value 
+                          density === densityOption.value 
                             ? 'bg-theme-panel text-theme-text border border-theme-accent'
                             : 'hover:bg-theme-bg border border-theme-border'
                         }`}
                       >
-                        {density.label}
+                        {densityOption.label}
                       </button>
                     ))}
                   </div>
@@ -198,7 +205,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     type="number"
                     min="5"
                     max="60"
-                    value={settings.pomodoro.focusMinutes}
+                    value={pomodoro.focusMinutes}
                     onChange={(e) => updatePomodoroSettings({ focusMinutes: parseInt(e.target.value) })}
                     className="w-full px-3 py-2 border border-theme-border rounded-lg bg-theme-bg text-theme-text focus:ring-2 focus:ring-theme-accent focus:border-theme-accent outline-none"
                   />
@@ -213,7 +220,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     type="number"
                     min="1"
                     max="15"
-                    value={settings.pomodoro.shortBreakMinutes}
+                    value={pomodoro.shortBreakMinutes}
                     onChange={(e) => updatePomodoroSettings({ shortBreakMinutes: parseInt(e.target.value) })}
                     className="w-full px-3 py-2 border border-theme-border rounded-lg bg-theme-bg text-theme-text focus:ring-2 focus:ring-theme-accent focus:border-theme-accent outline-none"
                   />
@@ -228,7 +235,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     type="number"
                     min="15"
                     max="30"
-                    value={settings.pomodoro.longBreakMinutes}
+                    value={pomodoro.longBreakMinutes}
                     onChange={(e) => updatePomodoroSettings({ longBreakMinutes: parseInt(e.target.value) })}
                     className="w-full px-3 py-2 border border-theme-border rounded-lg bg-theme-bg text-theme-text focus:ring-2 focus:ring-theme-accent focus:border-theme-accent outline-none"
                   />
@@ -243,7 +250,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     type="number"
                     min="2"
                     max="8"
-                    value={settings.pomodoro.cyclesBeforeLongBreak}
+                    value={pomodoro.cyclesBeforeLongBreak}
                     onChange={(e) => updatePomodoroSettings({ cyclesBeforeLongBreak: parseInt(e.target.value) })}
                     className="w-full px-3 py-2 border border-theme-border rounded-lg bg-theme-bg text-theme-text focus:ring-2 focus:ring-theme-accent focus:border-theme-accent outline-none"
                   />

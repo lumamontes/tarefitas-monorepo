@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import type { Task } from '../../../../old-frontend/src/types';
+import type { Task } from '../../types';
 import { Button } from '../ui/Button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 

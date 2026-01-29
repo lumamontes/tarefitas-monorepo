@@ -5,9 +5,9 @@
  */
 
 import { useState, useMemo } from 'react';
-import { useStore } from '@nanostores/react';
-import { $tasks, updateTask } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { updateTask } from '../../stores/tasksStore';
 
 interface CalendarAssignModalProps {
   dateStr: string; // YYYY-MM-DD
@@ -16,8 +16,10 @@ interface CalendarAssignModalProps {
 }
 
 export function CalendarAssignModal({ dateStr, onClose, onAssign }: CalendarAssignModalProps) {
-  const tasks = useStore($tasks);
-  const settings = useStore($settings);
+  const tasks = useTasksStore((s) => s.tasks);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const density = useSettingsStore((s) => s.density);
+  const fontScale = useSettingsStore((s) => s.fontScale);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter tasks: exclude archived, exclude already scheduled for this date
@@ -42,7 +44,7 @@ export function CalendarAssignModal({ dateStr, onClose, onAssign }: CalendarAssi
     onClose();
   };
 
-  const transitionClass = settings.reduceMotion ? '' : 'transition-all duration-200';
+  const transitionClass = reduceMotion ? '' : 'transition-all duration-200';
 
   return (
     <div 
@@ -54,7 +56,7 @@ export function CalendarAssignModal({ dateStr, onClose, onAssign }: CalendarAssi
     >
       <div 
         className={`bg-theme-panel rounded-xl border border-theme-border shadow-xl max-w-md w-full max-h-[80vh] flex flex-col ${
-          settings.density === 'compact' ? 'p-4' : 'p-6'
+          density === 'compact' ? 'p-4' : 'p-6'
         } ${transitionClass}`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -63,9 +65,9 @@ export function CalendarAssignModal({ dateStr, onClose, onAssign }: CalendarAssi
           <h2 
             id="assign-modal-title"
             className={`font-semibold text-theme-text mb-2 ${
-              settings.fontScale === 'sm' ? 'text-lg' :
-              settings.fontScale === 'lg' ? 'text-2xl' :
-              settings.fontScale === 'xl' ? 'text-3xl' :
+              fontScale === 'sm' ? 'text-lg' :
+              fontScale === 'lg' ? 'text-2xl' :
+              fontScale === 'xl' ? 'text-3xl' :
               'text-xl'
             }`}
           >
@@ -84,9 +86,9 @@ export function CalendarAssignModal({ dateStr, onClose, onAssign }: CalendarAssi
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar tarefa…"
             className={`w-full px-4 py-2 bg-theme-sidebar border border-theme-border rounded-lg text-theme-text placeholder-theme-muted focus:outline-none focus:ring-2 focus:ring-theme-accent ${
-              settings.fontScale === 'sm' ? 'text-sm' :
-              settings.fontScale === 'lg' ? 'text-base' :
-              settings.fontScale === 'xl' ? 'text-lg' :
+              fontScale === 'sm' ? 'text-sm' :
+              fontScale === 'lg' ? 'text-base' :
+              fontScale === 'xl' ? 'text-lg' :
               'text-sm'
             } ${transitionClass}`}
             autoFocus
@@ -111,18 +113,18 @@ export function CalendarAssignModal({ dateStr, onClose, onAssign }: CalendarAssi
                 className={`w-full text-left p-3 bg-theme-sidebar border border-theme-border rounded-lg hover:border-theme-accent hover:bg-theme-bg focus:outline-none focus:ring-2 focus:ring-theme-accent ${transitionClass}`}
               >
                 <h3 className={`font-medium text-theme-text ${
-                  settings.fontScale === 'sm' ? 'text-sm' :
-                  settings.fontScale === 'lg' ? 'text-base' :
-                  settings.fontScale === 'xl' ? 'text-lg' :
+                  fontScale === 'sm' ? 'text-sm' :
+                  fontScale === 'lg' ? 'text-base' :
+                  fontScale === 'xl' ? 'text-lg' :
                   'text-sm'
                 }`}>
                   {task.title}
                 </h3>
                 {task.description && (
                   <p className={`text-theme-muted mt-1 line-clamp-2 ${
-                    settings.fontScale === 'sm' ? 'text-xs' :
-                    settings.fontScale === 'lg' ? 'text-sm' :
-                    settings.fontScale === 'xl' ? 'text-base' :
+                    fontScale === 'sm' ? 'text-xs' :
+                    fontScale === 'lg' ? 'text-sm' :
+                    fontScale === 'xl' ? 'text-base' :
                     'text-xs'
                   }`}>
                     {task.description.replace(/<[^>]*>/g, '').substring(0, 100)}

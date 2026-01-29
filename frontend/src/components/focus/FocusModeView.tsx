@@ -4,21 +4,16 @@
  * Shows only: current task, next subtask, pomodoro controls
  */
 
-import { useStore } from '@nanostores/react';
-import { $selectedTask, $selectedTaskSubtasks } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings, updateSettings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { usePomodoroStore } from '../../stores/pomodoroStore';
 import { PomodoroTimer } from '../PomodoroTimer';
-import {
-  $isActive,
-  startCountdown,
-  resetCountdown,
-} from '../../../../old-frontend/src/stores/pomodoroStore';
 
 export function FocusModeView() {
-  const selectedTask = useStore($selectedTask);
-  const subtasks = useStore($selectedTaskSubtasks);
-  const settings = useStore($settings);
-  const isPomodoroActive = useStore($isActive);
+  const selectedTask = useTasksStore((s) => s.getSelectedTask());
+  const subtasks = useTasksStore((s) => s.getSelectedTaskSubtasks());
+  const updateSettingsAction = useSettingsStore((s) => s.updateSettings);
+  const isPomodoroActive = usePomodoroStore((s) => s.isActive);
 
   // Get next incomplete subtask
   const nextSubtask = subtasks.find(s => !s.done);
@@ -40,7 +35,7 @@ export function FocusModeView() {
             Selecione uma tarefa para começar a focar.
           </p>
           <button
-            onClick={() => updateSettings({ focusModeEnabled: false })}
+            onClick={() => updateSettingsAction({ focusModeEnabled: false })}
             className="px-6 py-3 bg-theme-accent text-white rounded-lg font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-theme-accent"
           >
             Sair do modo foco
@@ -55,7 +50,7 @@ export function FocusModeView() {
       {/* Exit Button - Top Right */}
       <div className="absolute top-6 right-6 z-10">
         <button
-          onClick={() => updateSettings({ focusModeEnabled: false })}
+          onClick={() => updateSettingsAction({ focusModeEnabled: false })}
           className="px-4 py-2 text-theme-text hover:bg-theme-sidebar rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent text-sm font-medium"
           aria-label="Sair do modo foco"
         >

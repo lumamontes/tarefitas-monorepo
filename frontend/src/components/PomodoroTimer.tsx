@@ -4,34 +4,23 @@
  */
 
 import React from 'react';
-import { useStore } from '@nanostores/react';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
-import {
-  $minutes,
-  $seconds,
-  $mode,
-  $isActive,
-  $hasFinished,
-  $completedFocusSessions,
-  setMode,
-  startCountdown,
-  resetCountdown,
-  nextMode,
-} from '../../../old-frontend/src/stores/pomodoroStore';
-import { useStore as useSettingsStore } from '@nanostores/react';
-import { $settings } from '../../../old-frontend/src/stores/settingsStore';
-import { useStoreInit } from '../../../old-frontend/src/hooks/useStoreInit';
+import { usePomodoroStore } from '../stores/pomodoroStore';
+import { setPomodoroMode, startPomodoroCountdown, resetPomodoroCountdown, nextPomodoroMode } from '../stores/pomodoroStore';
+import { useSettingsStore } from '../stores/settingsStore';
+import { useStoreInit } from '../hooks/useStoreInit';
 
 export function PomodoroTimer() {
-  const minutes = useStore($minutes);
-  const seconds = useStore($seconds);
-  const mode = useStore($mode);
-  const isActive = useStore($isActive);
-  const hasFinished = useStore($hasFinished);
-  const settings = useSettingsStore($settings);
-  // MVP §7: no session statistics displayed; completedSessions used only for "next" mode (long vs short break)
-  const completedSessions = useStore($completedFocusSessions);
+  const minutes = usePomodoroStore((s) => s.minutes);
+  const seconds = usePomodoroStore((s) => s.seconds);
+  const mode = usePomodoroStore((s) => s.mode);
+  const isActive = usePomodoroStore((s) => s.isActive);
+  const hasFinished = usePomodoroStore((s) => s.hasFinished);
+  const completedFocusSessions = usePomodoroStore((s) => s.completedFocusSessions);
+  const showProgressBars = useSettingsStore((s) => s.showProgressBars);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const pomodoroSettings = useSettingsStore((s) => s.pomodoro);
 
   // Initialize pomodoro store
   useStoreInit({ pomodoro: true });
@@ -40,11 +29,11 @@ export function PomodoroTimer() {
   const getModeDuration = () => {
     switch (mode) {
       case 'focus':
-        return settings.pomodoro.focusMinutes;
+        return pomodoroSettings.focusMinutes;
       case 'break':
-        return settings.pomodoro.shortBreakMinutes;
+        return pomodoroSettings.shortBreakMinutes;
       case 'longBreak':
-        return settings.pomodoro.longBreakMinutes;
+        return pomodoroSettings.longBreakMinutes;
       default:
         return 25;
     }
@@ -95,7 +84,7 @@ export function PomodoroTimer() {
 
   const getNextModeInfo = () => {
     if (mode === 'focus') {
-      const nextSessions = completedSessions + 1;
+      const nextSessions = completedFocusSessions + 1;
       if (nextSessions % 4 === 0) {
         return { title: 'Pausa Longa' };
       } else {
@@ -150,7 +139,7 @@ export function PomodoroTimer() {
           ].map(({ key, label, value, icon }) => (
             <button
               key={key}
-              onClick={() => setMode(value as any)}
+              onClick={() => setPomodoroMode(value as 'focus' | 'break' | 'longBreak')}
               disabled={isActive}
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
@@ -174,11 +163,11 @@ export function PomodoroTimer() {
           </div>
           
           {/* Progress Bar - only show if showProgressBars is enabled, and only animate if reduceMotion is false */}
-          {settings.showProgressBars && (
+          {showProgressBars && (
             <div className="w-full bg-theme-sidebar rounded-full h-2 mb-4">
               <div 
                 className={`h-2 rounded-full bg-theme-accent ${
-                  settings.reduceMotion ? '' : 'transition-all duration-1000 ease-out'
+                  reduceMotion ? '' : 'transition-all duration-1000 ease-out'
                 }`}
                 style={{ 
                   width: `${Math.max(0, Math.min(100, progressPercentage))}%` 
@@ -194,7 +183,7 @@ export function PomodoroTimer() {
             <div className="text-center">
               {/* Soft completion indicator - subtle checkmark, no bounce */}
               <div className={`mx-auto w-12 h-12 rounded-full ${modeInfo.bgColor} flex items-center justify-center mb-3 ${
-                settings.reduceMotion ? '' : 'transition-colors duration-300'
+                reduceMotion ? '' : 'transition-colors duration-300'
               }`}>
                 <svg className={`w-6 h-6 ${modeInfo.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -207,7 +196,7 @@ export function PomodoroTimer() {
             
             <div className="flex gap-3 justify-center">
               <Button
-                onClick={resetCountdown}
+                onClick={resetPomodoroCountdown}
                 variant="ghost"
                 size="medium"
                 className="min-w-[120px]"
@@ -216,7 +205,7 @@ export function PomodoroTimer() {
               </Button>
               
               <Button
-                onClick={nextMode}
+                onClick={nextPomodoroMode}
                 variant="primary"
                 size="medium"
                 className="min-w-[160px]"
@@ -234,7 +223,7 @@ export function PomodoroTimer() {
           <div className="flex gap-3 justify-center">
             {isActive ? (
               <Button
-                onClick={resetCountdown}
+                onClick={resetPomodoroCountdown}
                 variant="secondary"
                 size="large"
                 className="min-w-[160px]"
@@ -243,7 +232,7 @@ export function PomodoroTimer() {
               </Button>
             ) : (
               <Button
-                onClick={startCountdown}
+                onClick={startPomodoroCountdown}
                 variant="primary"
                 size="large"
                 className="min-w-[160px]"

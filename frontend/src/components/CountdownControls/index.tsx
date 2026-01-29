@@ -1,5 +1,3 @@
-
-import { useStore } from '@nanostores/react';
 import { useEffect } from 'react';
 import './styles.css';
 import FocoImg from '../../assets/foco.png';
@@ -8,28 +6,19 @@ import PausaLongaImg from '../../assets/pausa-longa.png';
 import IniciarImg from '../../assets/iniciar.png';
 import EncerradoImg from '../../assets/encerrado.png';
 import AbandonarImg from '../../assets/abandonar.png';
-import { 
-  $mode, 
-  $isActive, 
-  $hasFinished,
-  $completedFocusSessions,
-  setMode,
-  startCountdown,
-  resetCountdown,
-  nextMode,
-  initializeStore
-} from '../../../../old-frontend/src/stores/pomodoroStore';
+import { usePomodoroStore } from '../../../stores/pomodoroStore';
+import { setPomodoroMode, startPomodoroCountdown, resetPomodoroCountdown, nextPomodoroMode, initializePomodoroStore } from '../../../stores/pomodoroStore';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 
 export function CountdownControls({children}: {children: React.ReactNode}) {
   useEffect(() => {
-    initializeStore();
+    initializePomodoroStore();
   }, []);
 
-  const modeState = useStore($mode);
-  const isActive = useStore($isActive);
-  const hasFinished = useStore($hasFinished);
-  const completedSessions = useStore($completedFocusSessions);
+  const modeState = usePomodoroStore((s) => s.mode);
+  const isActive = usePomodoroStore((s) => s.isActive);
+  const hasFinished = usePomodoroStore((s) => s.hasFinished);
+  const completedSessions = usePomodoroStore((s) => s.completedFocusSessions);
 
   const buttons = [
     {
@@ -117,7 +106,7 @@ export function CountdownControls({children}: {children: React.ReactNode}) {
               key={mode}
               type='button'
               className={`countdownButton ${mode === modeState ? 'isFocused' : ''}`}
-              onClick={() => setMode(mode as any)}
+              onClick={() => setPomodoroMode(mode as 'focus' | 'break' | 'longBreak')}
               disabled={isActive}
             >
               <img role='button' src={img.src} alt={alt} />
@@ -147,14 +136,14 @@ export function CountdownControls({children}: {children: React.ReactNode}) {
             <button 
               type='button'
               className='resetCountdown'
-              onClick={resetCountdown}>
+              onClick={resetPomodoroCountdown}>
                 <RotateCcw size={42}/>
             </button>
           </div>
            <button 
               type='button'
               className='nextMode'
-              onClick={nextMode}>
+              onClick={nextPomodoroMode}>
                 <div className="next-mode-content">
                   <div className="next-mode-header">
                     <span className="next-mode-emoji">{nextModeInfo.emoji}</span>
@@ -174,7 +163,7 @@ export function CountdownControls({children}: {children: React.ReactNode}) {
                 <button
                   type='button'
                   className='countdownButton countdownButtonActive'
-                  onClick={resetCountdown}
+                  onClick={resetPomodoroCountdown}
                 >
                   <img role='button' src={AbandonarImg.src} alt="Abandonar ciclo" />
                 </button>
@@ -182,7 +171,7 @@ export function CountdownControls({children}: {children: React.ReactNode}) {
                 <button
                   type='button'
                   className='countdownButton'
-                  onClick={startCountdown}
+                  onClick={startPomodoroCountdown}
                 >
                   <img role='button' src={IniciarImg.src} alt="Iniciar ciclo" />
                 </button>

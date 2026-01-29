@@ -1,12 +1,54 @@
 /**
- * Tasks and Subtasks Store
+ * Tasks and Subtasks Store (Zustand)
  * Manages tasks, subtasks, and selected task state
- * Converted from nanostores to zustand
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Task, Subtask } from '../types';
+
+/** Pure helper for filtered list — use in components to avoid selector returning new array every time */
+export function computeFilteredTasks(
+  tasks: Task[],
+  taskFilter: 'all' | 'today' | 'in-progress' | 'completed' | 'archived',
+  subtasks: Subtask[]
+): Task[] {
+  let filtered = [...tasks];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  switch (taskFilter) {
+    case 'today':
+      filtered = filtered.filter((task) => {
+        const taskDate = new Date(task.createdAt);
+        taskDate.setHours(0, 0, 0, 0);
+        return taskDate.getTime() === today.getTime();
+      });
+      break;
+    case 'in-progress':
+      filtered = filtered.filter((task) => {
+        const taskSubtasks = subtasks.filter((s) => s.taskId === task.id);
+        if (taskSubtasks.length === 0) return false;
+        return taskSubtasks.some((s) => !s.done);
+      });
+      break;
+    case 'completed':
+      filtered = filtered.filter((task) => {
+        const taskSubtasks = subtasks.filter((s) => s.taskId === task.id);
+        if (taskSubtasks.length === 0) return false;
+        return taskSubtasks.every((s) => s.done);
+      });
+      break;
+    case 'archived':
+      filtered = filtered.filter((task) => task.archived);
+      break;
+    case 'all':
+    default:
+      filtered = filtered.filter((task) => !task.archived);
+      break;
+  }
+  return filtered;
+}
 
 interface TasksStore {
   tasks: Task[];
@@ -75,42 +117,7 @@ export const useTasksStore = create<TasksStore>()(
 
       getFilteredTasks: () => {
         const { tasks, taskFilter, subtasks } = get();
-        let filtered = [...tasks];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        switch (taskFilter) {
-          case 'today':
-            filtered = filtered.filter(task => {
-              const taskDate = new Date(task.createdAt);
-              taskDate.setHours(0, 0, 0, 0);
-              return taskDate.getTime() === today.getTime();
-            });
-            break;
-          case 'in-progress':
-            filtered = filtered.filter(task => {
-              const taskSubtasks = subtasks.filter(s => s.taskId === task.id);
-              if (taskSubtasks.length === 0) return false;
-              return taskSubtasks.some(s => !s.done);
-            });
-            break;
-          case 'completed':
-            filtered = filtered.filter(task => {
-              const taskSubtasks = subtasks.filter(s => s.taskId === task.id);
-              if (taskSubtasks.length === 0) return false;
-              return taskSubtasks.every(s => s.done);
-            });
-            break;
-          case 'archived':
-            filtered = filtered.filter(task => task.archived);
-            break;
-          case 'all':
-          default:
-            filtered = filtered.filter(task => !task.archived);
-            break;
-        }
-        
-        return filtered;
+        return computeFilteredTasks(tasks, taskFilter, subtasks);
       },
 
       setTaskFilter: (filter) => {
@@ -259,3 +266,71 @@ export const useTasksStore = create<TasksStore>()(
     }
   )
 );
+
+// --- Action/helper exports (for components that call selectTask, addTask, etc.) ---
+
+const getTasksState = () => useTasksStore.getState();
+
+export function selectTask(id: string | null): void {
+  getTasksState().selectTask(id);
+}
+
+export function addTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'order'>): string {
+  return getTasksState().addTask(task);
+}
+
+export function updateTask(id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>): void {
+  getTasksState().updateTask(id, updates);
+}
+
+export function deleteTask(id: string): void {
+  getTasksState().deleteTask(id);
+}
+
+export function setTaskFilter(filter: TasksStore['taskFilter']): void {
+  getTasksState().setTaskFilter(filter);
+}
+
+export function getTaskProgress(taskId: string): { completed: number; total: number; percentage: number } {
+  return getTasksState().getTaskProgress(taskId);
+}
+
+export function addSubtask(taskId: string, title: string): string {
+  return getTasksState().addSubtask(taskId, title);
+}
+
+export function toggleSubtaskDone(id: string): void {
+  getTasksState().toggleSubtaskDone(id);
+}
+
+export function updateSubtask(id: string, updates: Partial<Omit<Subtask, 'id' | 'taskId'>>): void {
+  getTasksState().updateSubtask(id, updates);
+}
+
+export function deleteSubtask(id: string): void {
+  getTasksState().deleteSubtask(id);
+}
+
+export function getTaskCountForDate(dateStr: string): number {
+  return getTasksState().getTaskCountForDate(dateStr);
+}
+
+export function getScheduledTasksForDate(dateStr: string): Task[] {
+  const state = getTasksState();
+  return state.tasks.filter((t) => !t.archived && t.scheduledDate === dateStr && !t.recurring);
+}
+
+export function getRecurringTasksForDate(dateStr: string): Task[] {
+  const state = getTasksState();
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  const dayOfWeek = date.getDay();
+  return state.tasks.filter((t) => {
+    if (t.archived || !t.recurring) return false;
+    if (t.recurring.type === 'daily') return true;
+    if (t.recurring.type === 'weekly' && t.recurring.daysOfWeek) {
+      return t.recurring.daysOfWeek.includes(dayOfWeek);
+    }
+    return false;
+  });
+}

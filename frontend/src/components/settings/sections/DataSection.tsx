@@ -3,20 +3,21 @@
  * Data export, import and reset functionality
  */
 
-import { useStore } from '@nanostores/react';
-import { $tasks, $subtasks } from '../../../../../old-frontend/src/stores/tasksStore';
-import { $settings, resetSettings } from '../../../../../old-frontend/src/stores/settingsStore';
+import { useTasksStore } from '../../../stores/tasksStore';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { resetSettings } from '../../../stores/settingsStore';
 import { useState } from 'react';
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 
 export function DataSection() {
-  const tasks = useStore($tasks);
-  const subtasks = useStore($subtasks);
-  const settings = useStore($settings);
+  const tasks = useTasksStore((s) => s.tasks);
+  const subtasks = useTasksStore((s) => s.subtasks);
+  const themeId = useSettingsStore((s) => s.themeId);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const exportData = () => {
+    const settings = useSettingsStore.getState();
     const data = {
       version: 1,
       exportDate: new Date().toISOString(),
@@ -101,7 +102,7 @@ export function DataSection() {
             <div className="text-sm text-theme-muted">Subtarefas</div>
           </Card>
           <Card padding="sm" variant="sidebar">
-            <div className="text-2xl font-semibold text-theme-text">{settings.themeId}</div>
+            <div className="text-2xl font-semibold text-theme-text">{themeId}</div>
             <div className="text-sm text-theme-muted">Tema Atual</div>
           </Card>
         </div>

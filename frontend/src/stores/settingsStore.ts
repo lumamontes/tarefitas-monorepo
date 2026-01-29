@@ -1,13 +1,11 @@
 /**
- * Settings Store
+ * Settings Store (Zustand)
  * Comprehensive settings for neurodivergent-friendly customization
- * Converted from nanostores to zustand
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { SettingsState, NDSettings, ThemeId, CustomPalette, Section } from '../types';
-import { atom } from 'nanostores';
 
 // Predefined theme palettes
 const themePalettes: Record<Exclude<ThemeId, 'custom'>, CustomPalette> = {
@@ -112,11 +110,6 @@ interface SettingsStore extends SettingsState {
   applyFont: () => void;
   getCurrentPalette: () => CustomPalette;
 }
-
-// State atoms
-export const $settings = atom<SettingsState>(defaultSettings);
-export const $currentSection = atom<Section | 'configuracoes'>('tasks');
-export const $previousSettings = atom<SettingsState | null>(null);
 
 export const useSettingsStore = create<SettingsStore>()(
   persist(
@@ -381,4 +374,51 @@ export const useSettingsStore = create<SettingsStore>()(
   )
 );
 
+// --- Action wrappers (for components importing updateSettings, resetSettings, etc.) ---
+
+const getSettingsState = () => useSettingsStore.getState();
+
+export function updateSettings(updates: Partial<SettingsState>): void {
+  getSettingsState().updateSettings(updates);
+}
+
+export function updatePomodoroSettings(updates: Partial<SettingsState['pomodoro']>): void {
+  getSettingsState().updatePomodoroSettings(updates);
+}
+
+export function updateNDSettings(updates: Partial<SettingsState['ndSettings']>): void {
+  getSettingsState().updateNDSettings(updates);
+}
+
+export function updateCustomPalette(updates: Partial<CustomPalette>): void {
+  getSettingsState().updateCustomPalette(updates);
+}
+
+export function setCurrentSection(section: Section | 'configuracoes'): void {
+  getSettingsState().setCurrentSection(section);
+}
+
+export function resetSettings(): void {
+  getSettingsState().resetSettings();
+}
+
+export function undoSettings(): void {
+  getSettingsState().undoSettings();
+}
+
+export function resetAppearance(): void {
+  getSettingsState().resetAppearance();
+}
+
+export function resetSounds(): void {
+  getSettingsState().resetSounds();
+}
+
+export function resetPomodoro(): void {
+  getSettingsState().resetPomodoro();
+}
+
+export function pauseEverything(): void {
+  getSettingsState().pauseEverything();
+}
 

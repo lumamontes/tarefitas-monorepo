@@ -4,16 +4,17 @@
  * Provides dopamine feedback through visual progress
  */
 
-import { useStore } from '@nanostores/react';
-import { $completionStreak, $streakMessage } from '../../../../old-frontend/src/stores/ndStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useNDStore } from '../../stores/ndStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 export function StreakCounter() {
-  const streak = useStore($completionStreak);
-  const streakMessage = useStore($streakMessage);
-  const settings = useStore($settings);
+  const completionStreak = useNDStore((s) => s.completionStreak);
+  const getStreakMessage = useNDStore((s) => s.getStreakMessage);
+  const streakMessage = getStreakMessage();
+  const streakTracking = useSettingsStore((s) => s.ndSettings?.streakTracking);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
 
-  if (!settings.ndSettings?.streakTracking || streak === 0) {
+  if (!streakTracking || completionStreak === 0) {
     return null;
   }
 
@@ -22,7 +23,7 @@ export function StreakCounter() {
       <div className="flex items-center gap-3">
         <div className="flex items-center justify-center w-12 h-12 bg-theme-accent/20 rounded-full">
           <span className="text-xl font-bold text-theme-accent">
-            {streak}
+            {completionStreak}
           </span>
         </div>
         <div className="flex-1">
@@ -32,21 +33,21 @@ export function StreakCounter() {
           )}
         </div>
         <div className="flex gap-1">
-          {Array.from({ length: Math.min(streak, 10) }, (_, i) => (
+          {Array.from({ length: Math.min(completionStreak, 10) }, (_, i) => (
             <div
               key={i}
               className={`w-2 h-8 rounded-full ${
-                i < streak 
+                i < completionStreak 
                   ? 'bg-theme-accent' 
                   : 'bg-theme-border'
               } ${
-                settings.reduceMotion ? '' : 'transition-colors duration-300'
+                reduceMotion ? '' : 'transition-colors duration-300'
               }`}
               aria-hidden="true"
             />
           ))}
-          {streak > 10 && (
-            <span className="text-xs text-theme-muted ml-1">+{streak - 10}</span>
+          {completionStreak > 10 && (
+            <span className="text-xs text-theme-muted ml-1">+{completionStreak - 10}</span>
           )}
         </div>
       </div>

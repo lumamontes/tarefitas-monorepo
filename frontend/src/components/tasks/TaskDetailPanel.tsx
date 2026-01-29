@@ -3,9 +3,9 @@
  * Main container for the refactored task detail view
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { useStore } from '@nanostores/react';
-import { $selectedTask, $filteredTasks, $selectedTaskIndex, selectTask, updateTask } from '../../../../old-frontend/src/stores/tasksStore';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useTasksStore } from '../../stores/tasksStore';
+import { computeFilteredTasks } from '../../stores/tasksStore';
 import { TaskDetailTopBar } from './TaskDetailTopBar';
 import { TaskSummaryStrip } from './TaskSummaryStrip';
 import { SubtasksSection } from './SubtasksSection';
@@ -25,9 +25,23 @@ interface UndoAction {
 }
 
 export function TaskDetailPanel({ onDelete }: TaskDetailPanelProps) {
-  const selectedTask = useStore($selectedTask);
-  const filteredTasks = useStore($filteredTasks);
-  const selectedTaskIndex = useStore($selectedTaskIndex);
+  const tasks = useTasksStore((s) => s.tasks);
+  const taskFilter = useTasksStore((s) => s.taskFilter);
+  const subtasks = useTasksStore((s) => s.subtasks);
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const selectTask = useTasksStore((s) => s.selectTask);
+  const updateTask = useTasksStore((s) => s.updateTask);
+
+  const filteredTasks = useMemo(
+    () => computeFilteredTasks(tasks, taskFilter, subtasks),
+    [tasks, taskFilter, subtasks]
+  );
+  const selectedTask = selectedTaskId
+    ? tasks.find((t) => t.id === selectedTaskId) ?? null
+    : null;
+  const selectedTaskIndex = selectedTaskId
+    ? filteredTasks.findIndex((t) => t.id === selectedTaskId)
+    : -1;
   const [isEditMode, setIsEditMode] = useState(false);
   const [undoAction, setUndoAction] = useState<UndoAction | null>(null);
   const [showSavedHint, setShowSavedHint] = useState(false);

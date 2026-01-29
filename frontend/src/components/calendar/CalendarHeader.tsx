@@ -3,8 +3,7 @@
  * Header with month/year display, navigation, and "Hoje" button
  */
 
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { useStore } from '@nanostores/react';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 interface CalendarHeaderProps {
   year: number;
@@ -26,18 +25,19 @@ export function CalendarHeader({
   onNextMonth, 
   onToday 
 }: CalendarHeaderProps) {
-  const settings = useStore($settings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const fontScale = useSettingsStore((s) => s.fontScale);
   
   const monthName = MONTHS[month];
-  const transitionClass = settings.reduceMotion ? '' : 'transition-colors duration-150';
+  const transitionClass = reduceMotion ? '' : 'transition-colors duration-150';
 
   return (
     <div className="flex items-center justify-between mb-6">
       {/* Month/Year Display */}
       <h2 className={`text-2xl font-semibold text-theme-text ${
-        settings.fontScale === 'sm' ? 'text-xl' :
-        settings.fontScale === 'lg' ? 'text-3xl' :
-        settings.fontScale === 'xl' ? 'text-4xl' :
+        fontScale === 'sm' ? 'text-xl' :
+        fontScale === 'lg' ? 'text-3xl' :
+        fontScale === 'xl' ? 'text-4xl' :
         'text-2xl'
       }`}>
         {monthName} {year}

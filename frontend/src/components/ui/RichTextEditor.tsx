@@ -7,8 +7,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useEffect } from 'react';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { useStore } from '@nanostores/react';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 interface RichTextEditorProps {
   content: string;
@@ -25,7 +24,7 @@ export function RichTextEditor({
   className = '',
   editable = true,
 }: RichTextEditorProps) {
-  const settings = useStore($settings);
+  const settings = useSettingsStore((s) => s);
 
   const editor = useEditor({
     extensions: [

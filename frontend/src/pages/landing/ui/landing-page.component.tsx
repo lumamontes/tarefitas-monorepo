@@ -179,7 +179,7 @@ export function LandingPage() {
                 className="font-landing-body text-theme-muted hover:text-theme-text transition-colors text-sm underline underline-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-accent focus-visible:ring-offset-2 focus-visible:rounded px-2 py-1"
                 style={{ fontFamily: 'var(--font-landing-body)' }}
               >
-                Já tenho conta
+                Já tenho conta :D
               </Link>
             </div>
           </div>

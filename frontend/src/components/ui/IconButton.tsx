@@ -5,8 +5,7 @@
  */
 
 import { type ReactNode } from 'react';
-import { useStore } from '@nanostores/react';
-import { $settings } from '../../stores/settingsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 export interface IconButtonProps {
   icon: ReactNode;
@@ -29,7 +28,7 @@ export function IconButton({
   disabled = false,
   className = '',
 }: IconButtonProps) {
-  const settings = useStore($settings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
 
   const sizeClasses = {
     sm: 'p-1.5',
@@ -43,7 +42,7 @@ export function IconButton({
     accent: 'text-theme-accent hover:bg-theme-accent/10',
   };
 
-  const transitionClass = settings.reduceMotion ? '' : 'transition-colors duration-150';
+  const transitionClass = reduceMotion ? '' : 'transition-colors duration-150';
 
   const classes = [
     'inline-flex items-center justify-center rounded-lg',

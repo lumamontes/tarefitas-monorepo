@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import type { Task } from '../../../../old-frontend/src/types';
+import type { Task } from '../../types';
 import { TaskItem } from './TaskItem';
 import { Button } from '../ui/Button';
 

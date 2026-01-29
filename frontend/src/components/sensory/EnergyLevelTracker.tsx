@@ -4,14 +4,14 @@
  * Adapts UI recommendations based on energy state
  */
 
-import { useStore } from '@nanostores/react';
-import { $energyLevel, updateEnergyLevel } from '../../../../old-frontend/src/stores/ndStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useNDStore } from '../../stores/ndStore';
+import { updateEnergyLevel } from '../../stores/ndStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { Battery, BatteryLow, Zap } from 'lucide-react';
 
 export function EnergyLevelTracker() {
-  const energyLevel = useStore($energyLevel);
-  const settings = useStore($settings);
+  const energyLevel = useNDStore((s) => s.energyLevel);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
 
   const energyOptions = [
     {
@@ -56,7 +56,7 @@ export function EnergyLevelTracker() {
             key={level}
             onClick={() => handleEnergyChange(level)}
             className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
-              settings.reduceMotion ? '' : 'duration-200'
+              reduceMotion ? '' : 'duration-200'
             } focus:outline-none focus:ring-2 focus:ring-theme-accent ${
               energyLevel === level 
                 ? `${activeColor} ${color.split(' ')[0]} font-medium`

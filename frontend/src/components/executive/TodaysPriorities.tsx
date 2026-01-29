@@ -4,10 +4,10 @@
  * Provides clear priority structure with time estimates
  */
 
-import { useStore } from '@nanostores/react';
-import { $filteredTasks, $subtasks, selectTask, getTaskProgress } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { $energyLevel } from '../../../../old-frontend/src/stores/ndStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useNDStore } from '../../stores/ndStore';
+import { selectTask, getTaskProgress } from '../../stores/tasksStore';
 import { useState, useMemo } from 'react';
 import { Button } from '../ui/Button';
 import { Shuffle } from 'lucide-react';
@@ -20,7 +20,7 @@ interface TaskCardProps {
 }
 
 function TaskCard({ task, priority, timeEstimate, onSelect }: TaskCardProps) {
-  const settings = useStore($settings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const progress = getTaskProgress(task.id);
 
   const priorityStyles = {
@@ -39,7 +39,7 @@ function TaskCard({ task, priority, timeEstimate, onSelect }: TaskCardProps) {
     <button
       onClick={() => onSelect(task.id)}
       className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-        settings.reduceMotion ? '' : 'duration-200 hover:scale-105'
+        reduceMotion ? '' : 'duration-200 hover:scale-105'
       } focus:outline-none focus:ring-2 focus:ring-theme-accent ${
         priorityStyles[priority]
       }`}
@@ -81,9 +81,9 @@ function TaskCard({ task, priority, timeEstimate, onSelect }: TaskCardProps) {
 }
 
 export function TodaysPriorities() {
-  const tasks = useStore($filteredTasks);
-  const settings = useStore($settings);
-  const energyLevel = useStore($energyLevel);
+  const tasks = useTasksStore((s) => s.getFilteredTasks());
+  const randomizeOrder = useSettingsStore((s) => s.ndSettings?.randomizeOrder);
+  const energyLevel = useNDStore((s) => s.energyLevel);
   const [randomSeed, setRandomSeed] = useState(0);
 
   // Calculate time estimates based on subtasks
@@ -102,7 +102,7 @@ export function TodaysPriorities() {
     let availableTasks = [...tasks].filter(task => !task.archived);
     
     // Randomize if user preference is set
-    if (settings.ndSettings?.randomizeOrder) {
+    if (randomizeOrder) {
       availableTasks = availableTasks
         .map(task => ({ task, sort: Math.random() + randomSeed }))
         .sort((a, b) => a.sort - b.sort)
@@ -138,7 +138,7 @@ export function TodaysPriorities() {
       shouldDo: shouldDo.slice(0, 1), 
       niceToDo: niceToDo.slice(0, 1)
     };
-  }, [tasks, energyLevel, settings.ndSettings?.randomizeOrder, randomSeed]);
+  }, [tasks, energyLevel, randomizeOrder, randomSeed]);
 
   const handleTaskSelect = (taskId: string) => {
     selectTask(taskId);
@@ -162,7 +162,7 @@ export function TodaysPriorities() {
         <h2 className="text-lg font-semibold text-theme-text">
           Prioridades de Hoje
         </h2>
-        {settings.ndSettings?.randomizeOrder && (
+        {randomizeOrder && (
           <Button 
             onClick={handleRandomize}
             variant="ghost"

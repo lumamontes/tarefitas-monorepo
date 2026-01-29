@@ -4,16 +4,17 @@
  */
 
 import { PomodoroTimer } from '../PomodoroTimer';
-import { useStore } from '@nanostores/react';
-import { $selectedTask } from '../../../../old-frontend/src/stores/tasksStore';
-import { $isActive } from '../../../../old-frontend/src/stores/pomodoroStore';
-import { $miniTimer, enableMiniTimer, disableMiniTimer, openPopupWindow } from '../../../../old-frontend/src/stores/miniTimerStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { usePomodoroStore } from '../../stores/pomodoroStore';
+import { useMiniTimerStore } from '../../stores/miniTimerStore';
+import { enableMiniTimer, disableMiniTimer, openPopupWindow } from '../../stores/miniTimerStore';
 import { Button } from '../ui/Button';
 
 export function PomodoroView() {
-  const selectedTask = useStore($selectedTask);
-  const isPomodoroActive = useStore($isActive);
-  const miniTimer = useStore($miniTimer);
+  const selectedTask = useTasksStore((s) => s.getSelectedTask());
+  const isPomodoroActive = usePomodoroStore((s) => s.isActive);
+  const miniEnabled = useMiniTimerStore((s) => s.miniEnabled);
+  const popupEnabled = useMiniTimerStore((s) => s.popupEnabled);
 
   return (
     <div data-section="pomodoro" className="h-full overflow-y-auto">
@@ -28,7 +29,7 @@ export function PomodoroView() {
         
         {/* Detach/Reattach Buttons */}
         <div className="mb-6 flex justify-end gap-2">
-          {miniTimer.miniEnabled || miniTimer.popupEnabled ? (
+          {miniEnabled || popupEnabled ? (
             <Button
               onClick={disableMiniTimer}
               variant="secondary"

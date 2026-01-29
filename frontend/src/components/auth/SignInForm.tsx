@@ -2,7 +2,7 @@
  * Sign In Form Component - Google OAuth only
  */
 import { useState } from "react";
-import { authClient } from "../../../../old-frontend/src/auth-client";
+import { authClient } from "@/shared/lib/auth-client";
 import { Button } from "../ui/Button";
 
 export function SignInForm() {

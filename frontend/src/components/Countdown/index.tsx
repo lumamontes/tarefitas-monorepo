@@ -1,11 +1,9 @@
-
-import { useStore } from '@nanostores/react';
-import { $minutes, $seconds } from '../../../../old-frontend/src/stores/pomodoroStore';
+import { usePomodoroStore } from '../../../stores/pomodoroStore';
 import './styles.css';
 
 export function Countdown() {
-  const minutes = useStore($minutes);
-  const seconds = useStore($seconds);
+  const minutes = usePomodoroStore((s) => s.minutes);
+  const seconds = usePomodoroStore((s) => s.seconds);
 
   const [minutesLeft, minuteRight] = String(minutes).padStart(2, '0').split('');
   const [secondsLeft, secondsRight] = String(seconds).padStart(2, '0').split('');

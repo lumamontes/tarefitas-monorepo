@@ -3,11 +3,10 @@
  * Two-column layout matching the Figma design
  */
 
-import { useStore } from '@nanostores/react';
-import { $currentSection, $settings, updateSettings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { useEffect } from 'react';
-import { useStoreInit } from '../../../../old-frontend/src/hooks/useStoreInit';
-import { useKeyboardShortcut } from '../../../../old-frontend/src/hooks/useKeyboardShortcut';
+import { useStoreInit } from '../../hooks/useStoreInit';
+import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
 import { Sidebar } from './Sidebar';
 import { TasksView } from '../tasks/TasksView';
 import { PomodoroView } from '../pomodoro/PomodoroView';
@@ -21,8 +20,10 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const currentSection = useStore($currentSection);
-  const settings = useStore($settings);
+  const currentSection = useSettingsStore((s) => s.currentSection);
+  const density = useSettingsStore((s) => s.density);
+  const focusModeEnabled = useSettingsStore((s) => s.focusModeEnabled);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
 
   // Initialize stores using centralized hook
   useStoreInit({ persistence: true, settings: true, miniTimer: true });
@@ -30,14 +31,14 @@ export function AppShell({ children }: AppShellProps) {
   // Apply density classes to root
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.body.className = `density-${settings.density}`;
+      document.body.className = `density-${density}`;
     }
-  }, [settings.density]);
+  }, [density]);
 
   // Keyboard shortcut for Focus Mode using custom hook
   useKeyboardShortcut(
     () => {
-      updateSettings({ focusModeEnabled: !settings.focusModeEnabled });
+      updateSettings({ focusModeEnabled: !focusModeEnabled });
     },
     {
       key: 'f',
@@ -63,7 +64,7 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   // If Focus Mode is enabled, show only FocusModeView
-  if (settings.focusModeEnabled) {
+  if (focusModeEnabled) {
     return (
       <div className="h-screen bg-theme-bg font-sans text-theme-text overflow-hidden">
         <FocusModeView />

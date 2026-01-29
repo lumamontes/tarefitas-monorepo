@@ -3,11 +3,11 @@
  * Filter buttons for tasks sidebar
  */
 
-import { useStore } from '@nanostores/react';
-import { $taskFilter, setTaskFilter } from '../../../../old-frontend/src/stores/tasksStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { setTaskFilter } from '../../stores/tasksStore';
 
 export function TaskFilters() {
-  const currentFilter = useStore($taskFilter);
+  const currentFilter = useTasksStore((s) => s.taskFilter);
 
   const filters = [
     { id: 'all' as const, label: 'Todas' },

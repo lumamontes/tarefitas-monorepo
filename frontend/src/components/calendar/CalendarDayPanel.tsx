@@ -5,16 +5,16 @@
  */
 
 import { useState, useMemo } from 'react';
-import { useStore } from '@nanostores/react';
-import { 
-  getScheduledTasksForDate, 
+import {
+  getScheduledTasksForDate,
   getRecurringTasksForDate,
-  getTaskProgress, 
+  getTaskProgress,
   selectTask,
-  updateTask 
-} from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings, setCurrentSection } from '../../../../old-frontend/src/stores/settingsStore';
-import { parseDateLocal, getTodayString } from '../../../../old-frontend/src/utils/dateUtils';
+  updateTask,
+} from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { setCurrentSection } from '../../stores/settingsStore';
+import { parseDateLocal, getTodayString } from '../../shared/lib/time.utils';
 import { CalendarAssignModal } from './CalendarAssignModal';
 
 interface CalendarDayPanelProps {
@@ -30,7 +30,10 @@ const MONTHS = [
 type FilterType = 'all' | 'scheduled' | 'routines';
 
 export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
-  const settings = useStore($settings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const density = useSettingsStore((s) => s.density);
+  const fontScale = useSettingsStore((s) => s.fontScale);
+  const showProgressBars = useSettingsStore((s) => s.showProgressBars);
   const [filter, setFilter] = useState<FilterType>('all');
   const [showAssignModal, setShowAssignModal] = useState(false);
 
@@ -89,9 +92,9 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
     updateTask(taskId, { scheduledDate: undefined });
   };
 
-  const transitionClass = settings.reduceMotion ? '' : 'transition-all duration-200';
-  const paddingClass = settings.density === 'compact' ? 'p-6' : 'p-8';
-  const spacingClass = settings.density === 'compact' ? 'space-y-2' : 'space-y-3';
+  const transitionClass = reduceMotion ? '' : 'transition-all duration-200';
+  const paddingClass = density === 'compact' ? 'p-6' : 'p-8';
+  const spacingClass = density === 'compact' ? 'space-y-2' : 'space-y-3';
 
   if (!dateStr) {
     return (
@@ -125,18 +128,18 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
           {/* Header */}
           <div className="mb-6">
             <h2 className={`font-semibold text-theme-text mb-1 ${
-              settings.fontScale === 'sm' ? 'text-xl' :
-              settings.fontScale === 'lg' ? 'text-3xl' :
-              settings.fontScale === 'xl' ? 'text-4xl' :
+              fontScale === 'sm' ? 'text-xl' :
+              fontScale === 'lg' ? 'text-3xl' :
+              fontScale === 'xl' ? 'text-4xl' :
               'text-2xl'
             }`}>
               {formattedDate?.split(',')[0] || formattedDate}
             </h2>
             {formattedDate && formattedDate.includes(',') && (
               <p className={`text-theme-muted ${
-                settings.fontScale === 'sm' ? 'text-xs' :
-                settings.fontScale === 'lg' ? 'text-sm' :
-                settings.fontScale === 'xl' ? 'text-base' :
+                fontScale === 'sm' ? 'text-xs' :
+                fontScale === 'lg' ? 'text-sm' :
+                fontScale === 'xl' ? 'text-base' :
                 'text-xs'
               }`}>
                 {formattedDate.split(', ').slice(1).join(', ')}
@@ -187,7 +190,7 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
           {/* Tasks List */}
           {!hasAnyTasks ? (
             <div className={`bg-theme-bg rounded-xl border border-theme-border ${
-              settings.density === 'compact' ? 'p-8' : 'p-12'
+              density === 'compact' ? 'p-8' : 'p-12'
             } text-center`}>
               <div className="w-16 h-16 mx-auto mb-4 bg-secondary-100 rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,17 +198,17 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
                 </svg>
               </div>
               <h3 className={`font-semibold text-theme-text mb-2 ${
-                settings.fontScale === 'sm' ? 'text-base' :
-                settings.fontScale === 'lg' ? 'text-lg' :
-                settings.fontScale === 'xl' ? 'text-xl' :
+                fontScale === 'sm' ? 'text-base' :
+                fontScale === 'lg' ? 'text-lg' :
+                fontScale === 'xl' ? 'text-xl' :
                 'text-base'
               }`}>
                 Dia livre! 🌟
               </h3>
               <p className={`text-theme-muted mb-6 ${
-                settings.fontScale === 'sm' ? 'text-sm' :
-                settings.fontScale === 'lg' ? 'text-base' :
-                settings.fontScale === 'xl' ? 'text-lg' :
+                fontScale === 'sm' ? 'text-sm' :
+                fontScale === 'lg' ? 'text-base' :
+                fontScale === 'xl' ? 'text-lg' :
                 'text-sm'
               }`}>
                 Nenhuma tarefa associada a esse dia. Que tal aproveitar para descansar ou adicionar algo especial?
@@ -223,18 +226,18 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
               {showScheduledSection && (
                 <div className="mb-6">
                   <h3 className={`font-medium text-theme-text mb-3 ${
-                    settings.fontScale === 'sm' ? 'text-sm' :
-                    settings.fontScale === 'lg' ? 'text-lg' :
-                    settings.fontScale === 'xl' ? 'text-xl' :
+                    fontScale === 'sm' ? 'text-sm' :
+                    fontScale === 'lg' ? 'text-lg' :
+                    fontScale === 'xl' ? 'text-xl' :
                     'text-base'
                   }`}>
                     Tarefas do dia
                   </h3>
                   {displayedScheduledTasks.length === 0 ? (
                     <p className={`text-theme-muted ${
-                      settings.fontScale === 'sm' ? 'text-xs' :
-                      settings.fontScale === 'lg' ? 'text-sm' :
-                      settings.fontScale === 'xl' ? 'text-base' :
+                      fontScale === 'sm' ? 'text-xs' :
+                      fontScale === 'lg' ? 'text-sm' :
+                      fontScale === 'xl' ? 'text-base' :
                       'text-xs'
                     }`}>
                       Nenhuma tarefa agendada para este dia.
@@ -250,7 +253,10 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
                             progress={progress}
                             onTaskClick={handleTaskClick}
                             onUnassign={handleUnassign}
-                            settings={settings}
+                            reduceMotion={reduceMotion}
+                            density={density}
+                            fontScale={fontScale}
+                            showProgressBars={showProgressBars}
                             transitionClass={transitionClass}
                           />
                         );
@@ -264,18 +270,18 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
               {showRecurringSection && (
                 <div>
                   <h3 className={`font-medium text-theme-text mb-3 ${
-                    settings.fontScale === 'sm' ? 'text-sm' :
-                    settings.fontScale === 'lg' ? 'text-lg' :
-                    settings.fontScale === 'xl' ? 'text-xl' :
+                    fontScale === 'sm' ? 'text-sm' :
+                    fontScale === 'lg' ? 'text-lg' :
+                    fontScale === 'xl' ? 'text-xl' :
                     'text-base'
                   }`}>
                     Rotinas
                   </h3>
                   {displayedRecurringTasks.length === 0 ? (
                     <p className={`text-theme-muted ${
-                      settings.fontScale === 'sm' ? 'text-xs' :
-                      settings.fontScale === 'lg' ? 'text-sm' :
-                      settings.fontScale === 'xl' ? 'text-base' :
+                      fontScale === 'sm' ? 'text-xs' :
+                      fontScale === 'lg' ? 'text-sm' :
+                      fontScale === 'xl' ? 'text-base' :
                       'text-xs'
                     }`}>
                       Nenhuma rotina para este dia.
@@ -291,7 +297,10 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
                             progress={progress}
                             onTaskClick={handleTaskClick}
                             onUnassign={undefined}
-                            settings={settings}
+                            reduceMotion={reduceMotion}
+                            density={density}
+                            fontScale={fontScale}
+                            showProgressBars={showProgressBars}
                             transitionClass={transitionClass}
                             isRecurring={true}
                           />
@@ -336,7 +345,10 @@ interface TaskRowProps {
   progress: { completed: number; total: number; percentage: number };
   onTaskClick: (taskId: string) => void;
   onUnassign?: (taskId: string, e: React.MouseEvent) => void;
-  settings: any;
+  reduceMotion: boolean;
+  density: 'comfortable' | 'compact';
+  fontScale: 'sm' | 'md' | 'lg' | 'xl';
+  showProgressBars: boolean;
   transitionClass: string;
   isRecurring?: boolean;
 }
@@ -346,11 +358,14 @@ function TaskRow({
   progress, 
   onTaskClick, 
   onUnassign,
-  settings,
+  reduceMotion,
+  density,
+  fontScale,
+  showProgressBars,
   transitionClass,
   isRecurring = false 
 }: TaskRowProps) {
-  const paddingClass = settings.density === 'compact' ? 'p-3' : 'p-4';
+  const paddingClass = density === 'compact' ? 'p-3' : 'p-4';
   
   return (
     <button
@@ -362,18 +377,18 @@ function TaskRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className={`font-medium text-theme-text group-hover:text-theme-accent ${transitionClass} ${
-              settings.fontScale === 'sm' ? 'text-sm' :
-              settings.fontScale === 'lg' ? 'text-base' :
-              settings.fontScale === 'xl' ? 'text-lg' :
+              fontScale === 'sm' ? 'text-sm' :
+              fontScale === 'lg' ? 'text-base' :
+              fontScale === 'xl' ? 'text-lg' :
               'text-sm'
             }`}>
               {task.title}
             </h3>
             {isRecurring && (
               <span className={`text-theme-muted bg-theme-bg px-2 py-0.5 rounded-full ${
-                settings.fontScale === 'sm' ? 'text-xs' :
-                settings.fontScale === 'lg' ? 'text-sm' :
-                settings.fontScale === 'xl' ? 'text-base' :
+                fontScale === 'sm' ? 'text-xs' :
+                fontScale === 'lg' ? 'text-sm' :
+                fontScale === 'xl' ? 'text-base' :
                 'text-xs'
               }`}>
                 {task.recurring.type === 'daily' ? 'Diária' : 'Semanal'}
@@ -382,21 +397,21 @@ function TaskRow({
           </div>
           {task.description && (
             <p className={`text-theme-muted line-clamp-2 mb-2 ${
-              settings.fontScale === 'sm' ? 'text-xs' :
-              settings.fontScale === 'lg' ? 'text-sm' :
-              settings.fontScale === 'xl' ? 'text-base' :
+              fontScale === 'sm' ? 'text-xs' :
+              fontScale === 'lg' ? 'text-sm' :
+              fontScale === 'xl' ? 'text-base' :
               'text-xs'
             }`}>
               {task.description.replace(/<[^>]*>/g, '').substring(0, 100)}
               {task.description.length > 100 ? '...' : ''}
             </p>
           )}
-          {settings.showProgressBars && progress.total > 0 && (
+          {showProgressBars && progress.total > 0 && (
             <div className="mt-2">
               <div className={`flex items-center justify-between text-theme-muted mb-1 ${
-                settings.fontScale === 'sm' ? 'text-xs' :
-                settings.fontScale === 'lg' ? 'text-sm' :
-                settings.fontScale === 'xl' ? 'text-base' :
+                fontScale === 'sm' ? 'text-xs' :
+                fontScale === 'lg' ? 'text-sm' :
+                fontScale === 'xl' ? 'text-base' :
                 'text-xs'
               }`}>
                 <span>Progresso</span>
@@ -407,7 +422,7 @@ function TaskRow({
                   className="h-full bg-theme-accent"
                   style={{ 
                     width: `${progress.percentage}%`,
-                    transitionDuration: settings.reduceMotion ? '0ms' : '300ms'
+                    transitionDuration: reduceMotion ? '0ms' : '300ms'
                   }}
                   aria-hidden="true"
                 />

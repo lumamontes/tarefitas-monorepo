@@ -3,18 +3,27 @@
  * List of subtasks with add functionality
  */
 
-import { useStore } from '@nanostores/react';
-import { $selectedTaskSubtasks, addSubtask, toggleSubtaskDone, updateSubtask, deleteSubtask } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useTasksStore } from '../../stores/tasksStore';
+import { addSubtask, toggleSubtaskDone, updateSubtask, deleteSubtask } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 interface SubtaskListProps {
   taskId: string;
 }
 
 export function SubtaskList({ taskId }: SubtaskListProps) {
-  const subtasks = useStore($selectedTaskSubtasks);
-  const settings = useStore($settings);
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const subtasksRaw = useTasksStore((s) => s.subtasks);
+  const subtasks = useMemo(
+    () =>
+      selectedTaskId === taskId
+        ? subtasksRaw
+            .filter((s) => s.taskId === selectedTaskId)
+            .sort((a, b) => a.order - b.order)
+        : [],
+    [taskId, selectedTaskId, subtasksRaw]
+  );
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   
@@ -125,15 +134,14 @@ interface SubtaskItemProps {
 }
 
 function SubtaskItem({ subtask, isCurrent = false, onToggleDone, onUpdateTitle, onUpdateDescription, onDelete }: SubtaskItemProps) {
-  const settings = useStore($settings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [titleValue, setTitleValue] = useState(subtask.title);
   const [descriptionValue, setDescriptionValue] = useState(subtask.description || '');
-  
-  // Animation classes based on reduceMotion setting
-  const transitionClass = settings.reduceMotion ? '' : 'transition-all duration-200';
-  const animationClass = settings.reduceMotion ? '' : 'hover:scale-[0.98]';
+
+  const transitionClass = reduceMotion ? '' : 'transition-all duration-200';
+  const animationClass = reduceMotion ? '' : 'hover:scale-[0.98]';
 
   const handleSave = () => {
     if (titleValue.trim()) {

@@ -3,7 +3,7 @@
  * No urgency language or countdowns
  */
 
-import { format, isToday, isTomorrow, isYesterday, differenceInDays, startOfDay, parseISO } from 'date-fns';
+import { format, isToday, isTomorrow, isYesterday, differenceInDays, startOfDay, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 
 export type TimeDistance = 'today' | 'soon' | 'later' | 'far' | 'past';
 
@@ -171,4 +171,14 @@ export function isPastDate(date: Date | string | null | undefined): boolean {
   if (!date) return false;
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
   return dateObj < startOfDay(new Date());
+}
+
+/**
+ * Get all date strings (YYYY-MM-DD) for a given month
+ */
+export function getDateStringsInMonth(year: number, month: number): string[] {
+  const monthStart = startOfMonth(new Date(year, month, 1));
+  const monthEnd = endOfMonth(monthStart);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  return days.map((d) => formatDateLocal(d));
 }

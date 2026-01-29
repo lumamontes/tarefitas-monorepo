@@ -3,11 +3,11 @@
  * Center panel showing filtered tasks with progress bars
  */
 
-import { useStore } from '@nanostores/react';
-import { $filteredTasks, $selectedTaskId, selectTask, getTaskProgress } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { useState, useEffect, useRef } from 'react';
-import { useKeyboardShortcut } from '../../../../old-frontend/src/hooks/useKeyboardShortcut';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { selectTask, getTaskProgress, computeFilteredTasks } from '../../stores/tasksStore';
+import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Plus } from 'lucide-react';
@@ -18,13 +18,18 @@ interface TaskListPanelProps {
 }
 
 export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps) {
-  const filteredTasks = useStore($filteredTasks);
-  const selectedTaskId = useStore($selectedTaskId);
-  const settings = useStore($settings);
-  
-  // ND-specific behavior based on executive load
-  const executiveLoad = settings.ndSettings?.executiveLoad || 'standard';
-  const isMinimalMode = executiveLoad === 'minimal';
+  const tasks = useTasksStore((s) => s.tasks);
+  const taskFilter = useTasksStore((s) => s.taskFilter);
+  const subtasks = useTasksStore((s) => s.subtasks);
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const executiveLoad = useSettingsStore((s) => s.ndSettings?.executiveLoad);
+  const showProgressBars = useSettingsStore((s) => s.showProgressBars);
+
+  const filteredTasks = useMemo(
+    () => computeFilteredTasks(tasks, taskFilter, subtasks),
+    [tasks, taskFilter, subtasks]
+  );
+  const isMinimalMode = (executiveLoad ?? 'standard') === 'minimal';
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const listRef = useRef<HTMLDivElement>(null);
@@ -196,7 +201,7 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
                         </p>
                       )}
                       {/* Progress bar - Hidden in minimal mode or if user disabled */}
-                      {settings.showProgressBars && progress.total > 0 && !isMinimalMode && (
+                      {showProgressBars && progress.total > 0 && !isMinimalMode && (
                         <div className="flex items-center gap-2 mt-2">
                           <div className="flex-1 h-1.5 bg-theme-border rounded-full overflow-hidden">
                             <div

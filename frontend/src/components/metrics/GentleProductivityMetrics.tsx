@@ -4,15 +4,14 @@
  * Emphasizes effort and progress over pure output
  */
 
-import { useStore } from '@nanostores/react';
-import { $contextState, $todayEffortMessage } from '../../../../old-frontend/src/stores/ndStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useNDStore } from '../../stores/ndStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { Heart, Target, Clock, TrendingUp } from 'lucide-react';
 
 export function GentleProductivityMetrics() {
-  const contextState = useStore($contextState);
-  const effortMessage = useStore($todayEffortMessage);
-  const settings = useStore($settings);
+  const contextState = useNDStore((s) => s.contextState);
+  const getTodayEffortMessage = useNDStore((s) => s.getTodayEffortMessage);
+  const effortMessage = getTodayEffortMessage();
 
   const metrics = [
     {

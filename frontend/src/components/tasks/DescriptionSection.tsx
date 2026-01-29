@@ -4,9 +4,9 @@
  */
 
 import { useState } from 'react';
-import { updateTask } from '../../../../old-frontend/src/stores/tasksStore';
+import { updateTask } from '../../stores/tasksStore';
 import { RichTextEditor } from '../ui/RichTextEditor';
-import type { Task } from '../../../../old-frontend/src/types';
+import type { Task } from '../../types';
 
 interface DescriptionSectionProps {
   task: Task;

@@ -1,7 +1,6 @@
 /**
- * ND-Specific Store
+ * ND-Specific Store (Zustand)
  * Tracks streaks, context, energy levels, and provides neurodivergent-friendly features
- * Converted from nanostores to zustand
  */
 
 import { create } from 'zustand';
@@ -198,3 +197,17 @@ export const useNDStore = create<NDStore>()(
     }
   )
 );
+
+// --- Helper exports ---
+
+export function shouldShowCelebration(): boolean {
+  return useNDStore.getState().shouldShowCelebration();
+}
+
+export function getCelebrationLevel(): 'small' | 'medium' | 'large' {
+  return useNDStore.getState().getCelebrationLevel();
+}
+
+export function updateEnergyLevel(level: NDStore['energyLevel']): void {
+  useNDStore.getState().updateEnergyLevel(level);
+}

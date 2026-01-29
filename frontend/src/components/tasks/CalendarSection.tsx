@@ -4,9 +4,9 @@
  */
 
 import { useState } from 'react';
-import { updateTask } from '../../../../old-frontend/src/stores/tasksStore';
-import { parseDateLocal } from '../../../../old-frontend/src/utils/dateUtils';
-import type { Task } from '../../../../old-frontend/src/types';
+import { updateTask } from '../../stores/tasksStore';
+import { parseDateLocal } from '../../shared/lib/time.utils';
+import type { Task } from '../../types';
 
 interface CalendarSectionProps {
   task: Task;

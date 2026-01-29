@@ -4,36 +4,22 @@
  */
 
 import React from 'react';
-import { useStore } from '@nanostores/react';
-import {
-  $minutes,
-  $seconds,
-  $mode,
-  $isActive,
-  $hasFinished,
-  startCountdown,
-  pauseCountdown,
-  resetCountdown,
-  nextMode,
-} from '../../../../old-frontend/src/stores/pomodoroStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { $selectedTask } from '../../../../old-frontend/src/stores/tasksStore';
-import { useStoreInit } from '../../../../old-frontend/src/hooks/useStoreInit';
+import { usePomodoroStore } from '../../stores/pomodoroStore';
+import { startPomodoroCountdown, pausePomodoroCountdown, resetPomodoroCountdown, nextPomodoroMode } from '../../stores/pomodoroStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useStoreInit } from '../../hooks/useStoreInit';
 
 export function MiniPomodoroPopup() {
-  const minutes = useStore($minutes);
-  const seconds = useStore($seconds);
-  const mode = useStore($mode);
-  const isActive = useStore($isActive);
-  const hasFinished = useStore($hasFinished);
-  const settings = useStore($settings);
-  const selectedTask = useStore($selectedTask);
+  const minutes = usePomodoroStore((s) => s.minutes);
+  const seconds = usePomodoroStore((s) => s.seconds);
+  const mode = usePomodoroStore((s) => s.mode);
+  const isActive = usePomodoroStore((s) => s.isActive);
+  const hasFinished = usePomodoroStore((s) => s.hasFinished);
+  const selectedTask = useTasksStore((s) => s.getSelectedTask());
 
   // Initialize stores using centralized hook
   useStoreInit({
-    persistence: true,
     settings: true,
-    miniTimer: true,
     pomodoro: true,
   });
 
@@ -91,7 +77,7 @@ export function MiniPomodoroPopup() {
         <div className="flex flex-col gap-2">
           {isActive ? (
             <button
-              onClick={pauseCountdown}
+              onClick={pausePomodoroCountdown}
               className="w-full px-4 py-3 bg-theme-sidebar hover:bg-theme-border text-theme-text rounded-lg font-medium transition-colors focus-ring"
               aria-label="Pausar"
             >
@@ -112,7 +98,7 @@ export function MiniPomodoroPopup() {
             </button>
           ) : (
             <button
-              onClick={startCountdown}
+              onClick={startPomodoroCountdown}
               className="w-full px-4 py-3 bg-theme-accent hover:opacity-90 text-white rounded-lg font-medium transition-colors focus-ring"
               aria-label="Iniciar"
             >
@@ -140,7 +126,7 @@ export function MiniPomodoroPopup() {
           )}
           <div className="flex gap-2">
             <button
-              onClick={resetCountdown}
+              onClick={resetPomodoroCountdown}
               className="flex-1 px-4 py-3 bg-theme-sidebar hover:bg-theme-border text-theme-text rounded-lg font-medium transition-colors focus-ring"
               aria-label="Reiniciar"
             >
@@ -160,7 +146,7 @@ export function MiniPomodoroPopup() {
             </button>
             {hasFinished && (
               <button
-                onClick={nextMode}
+                onClick={nextPomodoroMode}
                 className="flex-1 px-4 py-3 bg-theme-accent hover:opacity-90 text-white rounded-lg font-medium transition-colors focus-ring"
                 aria-label="Próximo modo"
               >

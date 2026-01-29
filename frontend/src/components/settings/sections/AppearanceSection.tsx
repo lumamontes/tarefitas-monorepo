@@ -3,11 +3,17 @@
  * Theme selection and custom palette editor
  */
 
-import { useStore } from '@nanostores/react';
-import { $settings, updateSettings, updateCustomPalette, resetAppearance, type ThemeId, type CustomPalette } from '../../../../../old-frontend/src/stores/settingsStore';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import type { ThemeId, CustomPalette } from '../../../types';
 
 export function AppearanceSection() {
-  const settings = useStore($settings);
+  const themeId = useSettingsStore((s) => s.themeId);
+  const customPalette = useSettingsStore((s) => s.customPalette);
+  const density = useSettingsStore((s) => s.density);
+  const showProgressBars = useSettingsStore((s) => s.showProgressBars);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const updateCustomPalette = useSettingsStore((s) => s.updateCustomPalette);
+  const resetAppearance = useSettingsStore((s) => s.resetAppearance);
 
   const themes = [
     {
@@ -33,8 +39,8 @@ export function AppearanceSection() {
       name: 'Personalizado',
       description: 'Crie sua própria combinação de cores',
       preview: { 
-        bg: settings.customPalette?.bg || '#fafafa', 
-        accent: settings.customPalette?.accent || '#d99f6c' 
+        bg: customPalette?.bg || '#fafafa', 
+        accent: customPalette?.accent || '#d99f6c' 
       }
     }
   ];
@@ -59,7 +65,7 @@ export function AppearanceSection() {
               key={theme.id}
               onClick={() => handleThemeChange(theme.id)}
               className={`p-4 rounded-lg border text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-accent ${
-                settings.themeId === theme.id
+                themeId === theme.id
                   ? 'border-theme-accent bg-[var(--accent)]/10'
                   : 'border-theme-border hover:border-theme-accent/50'
               }`}
@@ -77,7 +83,7 @@ export function AppearanceSection() {
                   />
                 </div>
                 <span className="font-medium text-theme-text">{theme.name}</span>
-                {settings.themeId === theme.id && (
+                {themeId === theme.id && (
                   <svg className="w-4 h-4 text-theme-accent" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
@@ -90,11 +96,11 @@ export function AppearanceSection() {
       </div>
 
       {/* Custom Palette Editor */}
-      {settings.themeId === 'custom' && (
+      {themeId === 'custom' && (
         <div>
           <h3 className="text-base font-medium text-theme-text mb-4">Paleta Personalizada</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(settings.customPalette || {}).map(([key, value]) => (
+            {Object.entries(customPalette || {}).map(([key, value]) => (
               <div key={key}>
                 <label className="block text-sm font-medium text-theme-text mb-2 capitalize">
                   {key === 'bg' ? 'Fundo do App' :
@@ -129,21 +135,21 @@ export function AppearanceSection() {
             <h4 className="text-sm font-medium text-theme-text mb-2">Prévia</h4>
             <div 
               className="p-3 rounded-lg"
-              style={{ backgroundColor: settings.customPalette?.sidebar || '#ffffff' }}
+              style={{ backgroundColor: customPalette?.sidebar || '#ffffff' }}
             >
               <div className="mb-2">
-                <span style={{ color: settings.customPalette?.text || '#5f6d73' }}>
+                <span style={{ color: customPalette?.text || '#5f6d73' }}>
                   Texto principal
                 </span>
               </div>
               <div className="mb-2">
-                <span style={{ color: settings.customPalette?.mutedText || '#737373' }}>
+                <span style={{ color: customPalette?.mutedText || '#737373' }}>
                   Texto secundário
                 </span>
               </div>
               <div 
                 className="inline-block px-3 py-1 rounded-full text-white text-sm"
-                style={{ backgroundColor: settings.customPalette?.accent || '#d99f6c' }}
+                style={{ backgroundColor: customPalette?.accent || '#d99f6c' }}
               >
                 Elemento destacado
               </div>
@@ -164,7 +170,7 @@ export function AppearanceSection() {
               key={option.value}
               onClick={() => updateSettings({ density: option.value as 'cozy' | 'compact' })}
               className={`flex-1 p-3 rounded-lg border text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-accent ${
-                settings.density === option.value
+                density === option.value
                   ? 'border-theme-accent bg-[var(--accent)]/10'
                   : 'border-theme-border hover:border-theme-accent/50'
               }`}
@@ -185,14 +191,14 @@ export function AppearanceSection() {
             <div className="text-sm text-theme-muted">Ajuda a visualizar o andamento das tarefas</div>
           </div>
           <button
-            onClick={() => updateSettings({ showProgressBars: !settings.showProgressBars })}
+            onClick={() => updateSettings({ showProgressBars: !showProgressBars })}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent focus:ring-offset-2 ${
-                      settings.showProgressBars ? 'bg-theme-accent' : 'bg-theme-border'
+                      showProgressBars ? 'bg-theme-accent' : 'bg-theme-border'
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-theme-sidebar transition-transform ${
-                        settings.showProgressBars ? 'translate-x-6' : 'translate-x-1'
+                        showProgressBars ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
           </button>

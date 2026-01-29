@@ -3,22 +3,31 @@
  * Small, minimal summary strip with progress, tags, and calendar info
  */
 
-import { useStore } from '@nanostores/react';
-import { $taskProgress } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import type { Task } from '../../../../old-frontend/src/types';
-import { parseDateLocal } from '../../../../old-frontend/src/utils/dateUtils';
+import { useMemo } from 'react';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import type { Task } from '../../types';
+import { parseDateLocal } from '../../shared/lib/time.utils';
 
 interface TaskSummaryStripProps {
   task: Task;
 }
 
 export function TaskSummaryStrip({ task }: TaskSummaryStripProps) {
-  const progress = useStore($taskProgress);
-  const settings = useStore($settings);
-  
+  const subtasksRaw = useTasksStore((s) => s.subtasks);
+  const showProgressBars = useSettingsStore((s) => s.showProgressBars);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+
+  const progress = useMemo(() => {
+    const taskSubtasks = subtasksRaw.filter((s) => s.taskId === task.id);
+    const completed = taskSubtasks.filter((s) => s.done).length;
+    const total = taskSubtasks.length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return { completed, total, percentage };
+  }, [task.id, subtasksRaw]);
+
   const hasCalendar = !!task.scheduledDate || !!task.recurring;
-  const hasProgress = settings.showProgressBars && progress.total > 0;
+  const hasProgress = showProgressBars && progress.total > 0;
   
   // Don't show if nothing to display
   if (!hasProgress && !hasCalendar) {
@@ -30,13 +39,13 @@ export function TaskSummaryStrip({ task }: TaskSummaryStripProps) {
       {hasProgress && (
         <div className="flex items-center gap-2">
           <span>{progress.completed}/{progress.total}</span>
-          {settings.showProgressBars && (
+          {showProgressBars && (
             <div className="w-16 h-1 bg-theme-bg rounded-full overflow-hidden">
               <div
                 className="h-full bg-theme-accent transition-all"
-                style={{ 
+                style={{
                   width: `${progress.percentage}%`,
-                  transitionDuration: settings.reduceMotion ? '0ms' : '300ms'
+                  transitionDuration: reduceMotion ? '0ms' : '300ms'
                 }}
                 aria-hidden="true"
               />

@@ -4,10 +4,9 @@
  */
 
 import { useState } from 'react';
-import { toggleSubtaskDone, updateSubtask, deleteSubtask } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { useStore } from '@nanostores/react';
-import type { Subtask } from '../../../../old-frontend/src/types';
+import { toggleSubtaskDone, updateSubtask, deleteSubtask } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import type { Subtask } from '../../types';
 
 interface SubtaskRowProps {
   subtask: Subtask;
@@ -17,7 +16,7 @@ interface SubtaskRowProps {
 }
 
 export function SubtaskRow({ subtask, isSelected, isOverwhelmMode, onSelect }: SubtaskRowProps) {
-  const settings = useStore($settings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const [isEditing, setIsEditing] = useState(false);
   const [titleValue, setTitleValue] = useState(subtask.title);
   const [showDelete, setShowDelete] = useState(false);
@@ -81,7 +80,7 @@ export function SubtaskRow({ subtask, isSelected, isOverwhelmMode, onSelect }: S
         flex items-center gap-3 p-3 rounded-lg border transition-colors
         ${isSelected ? 'bg-theme-accent/10 border-theme-accent' : 'bg-theme-sidebar border-theme-border'}
         ${subtask.done ? 'opacity-60' : ''}
-        ${settings.reduceMotion ? '' : 'hover:bg-theme-bg'}
+        ${reduceMotion ? '' : 'hover:bg-theme-bg'}
       `}
       onClick={onSelect}
       onMouseEnter={() => setShowDelete(true)}

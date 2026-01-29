@@ -5,9 +5,8 @@
  */
 
 import { useState } from 'react';
-import { useStore } from '@nanostores/react';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { addTask } from '../../../../old-frontend/src/stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { addTask } from '../../stores/tasksStore';
 import { Button } from '../ui/Button';
 import { Clock, Calendar, Coffee, Moon, Sunrise, BookOpen } from 'lucide-react';
 
@@ -108,11 +107,11 @@ const routineTemplates: RoutineTemplate[] = [
 ];
 
 export function RoutineTemplates() {
-  const settings = useStore($settings);
+  const routineTemplatesEnabled = useSettingsStore((s) => s.ndSettings?.routineTemplates);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
 
-  if (!settings.ndSettings?.routineTemplates) {
+  if (!routineTemplatesEnabled) {
     return null;
   }
 

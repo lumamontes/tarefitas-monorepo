@@ -4,10 +4,9 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useStore } from '@nanostores/react';
-import { $selectedTaskSubtasks, addSubtask, toggleSubtaskDone } from '../../../../old-frontend/src/stores/tasksStore';
+import { useTasksStore } from '../../stores/tasksStore';
 import { SubtaskRow } from './SubtaskRow';
-import type { Task } from '../../../../old-frontend/src/types';
+import type { Task } from '../../types';
 
 interface SubtasksSectionProps {
   task: Task;
@@ -17,7 +16,9 @@ interface SubtasksSectionProps {
 const OVERWHELM_MODE_KEY = 'tarefitas_overwhelm_mode';
 
 export function SubtasksSection({ task }: SubtasksSectionProps) {
-  const subtasks = useStore($selectedTaskSubtasks);
+  const addSubtask = useTasksStore((state) => state.addSubtask);
+  const toggleSubtaskDone = useTasksStore((state) => state.toggleSubtaskDone);
+  const subtasks = useTasksStore((state) => state.subtasks);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [selectedSubtaskId, setSelectedSubtaskId] = useState<string | null>(null);

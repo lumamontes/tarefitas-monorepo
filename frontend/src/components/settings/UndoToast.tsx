@@ -4,11 +4,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useStore } from '@nanostores/react';
-import { $previousSettings, undoSettings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 export function UndoToast() {
-  const previousSettings = useStore($previousSettings);
+  const previousSettings = useSettingsStore((s) => s.previousSettings);
+  const undoSettings = useSettingsStore((s) => s.undoSettings);
   const [showToast, setShowToast] = useState(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 

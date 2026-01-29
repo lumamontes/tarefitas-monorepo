@@ -6,19 +6,23 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useStore } from '@nanostores/react';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarMonthGrid } from './CalendarMonthGrid';
 import { CalendarDayPanel } from './CalendarDayPanel';
+import { CalendarPageView } from './CalendarPageView';
 import { ResizableHandle } from '../ui/ResizableHandle';
-import { useResizablePanels } from '../../../../old-frontend/src/hooks/useResizablePanels';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { getTodayString, parseDateLocal } from '../../../../old-frontend/src/utils/dateUtils';
+import { useResizablePanels } from '../../hooks/useResizablePanels';
+import { getTodayString, parseDateLocal } from '../../shared/lib/time.utils';
+import { FileText, CalendarDays } from 'lucide-react';
 
 const LAST_SELECTED_CALENDAR_DATE_KEY = 'lastSelectedCalendarDate';
+type CalendarTab = 'page' | 'grid';
 
 export function CalendarView() {
-  const settings = useStore($settings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const density = useSettingsStore((s) => s.density);
+  const [tab, setTab] = useState<CalendarTab>('page');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth());
@@ -128,10 +132,54 @@ export function CalendarView() {
     setCurrentMonth(month);
   };
 
-  const transitionClass = settings.reduceMotion ? '' : 'transition-all duration-300';
-  const paddingClass = settings.density === 'compact' ? 'p-4' : 'p-6';
+  const transitionClass = reduceMotion ? '' : 'transition-all duration-300';
+  const paddingClass = density === 'compact' ? 'p-4' : 'p-6';
 
-  // Mobile view: single column
+  // Tab bar: Vista página (default) | Vista calendário
+  const tabBar = (
+    <div className="flex border-b border-theme-border bg-theme-panel shrink-0">
+      <button
+        type="button"
+        onClick={() => setTab('page')}
+        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 ${transitionClass} ${
+          tab === 'page'
+            ? 'border-theme-accent text-theme-text'
+            : 'border-transparent text-theme-muted hover:text-theme-text'
+        }`}
+        aria-pressed={tab === 'page'}
+      >
+        <FileText className="w-4 h-4" aria-hidden />
+        Vista página
+      </button>
+      <button
+        type="button"
+        onClick={() => setTab('grid')}
+        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 ${transitionClass} ${
+          tab === 'grid'
+            ? 'border-theme-accent text-theme-text'
+            : 'border-transparent text-theme-muted hover:text-theme-text'
+        }`}
+        aria-pressed={tab === 'grid'}
+      >
+        <CalendarDays className="w-4 h-4" aria-hidden />
+        Vista calendário
+      </button>
+    </div>
+  );
+
+  // Page view (Year > Month > Day, collapsible) - full width
+  if (tab === 'page') {
+    return (
+      <div data-section="calendar" className="h-full flex flex-col bg-theme-panel overflow-hidden">
+        {tabBar}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <CalendarPageView />
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile view: single column (grid tab only)
   if (isMobileView) {
     return (
       <div 

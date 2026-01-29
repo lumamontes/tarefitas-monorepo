@@ -3,11 +3,14 @@
  * Accessibility and motion settings
  */
 
-import { useStore } from '@nanostores/react';
-import { $settings, updateSettings, pauseEverything } from '../../../../../old-frontend/src/stores/settingsStore';
+import { useSettingsStore } from '../../../stores/settingsStore';
 
 export function AccessibilitySection() {
-  const settings = useStore($settings);
+  const focusModeEnabled = useSettingsStore((s) => s.focusModeEnabled);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const themeId = useSettingsStore((s) => s.themeId);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const pauseEverything = useSettingsStore((s) => s.pauseEverything);
 
   return (
     <div className="space-y-6">
@@ -23,14 +26,14 @@ export function AccessibilitySection() {
             </div>
           </div>
           <button
-            onClick={() => updateSettings({ focusModeEnabled: !settings.focusModeEnabled })}
+            onClick={() => updateSettings({ focusModeEnabled: !focusModeEnabled })}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent focus:ring-offset-2 ${
-              settings.focusModeEnabled ? 'bg-theme-accent' : 'bg-theme-border'
+              focusModeEnabled ? 'bg-theme-accent' : 'bg-theme-border'
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-theme-sidebar transition-transform ${
-                settings.focusModeEnabled ? 'translate-x-6' : 'translate-x-1'
+                focusModeEnabled ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>
@@ -48,14 +51,14 @@ export function AccessibilitySection() {
             </div>
           </div>
           <button
-            onClick={() => updateSettings({ reduceMotion: !settings.reduceMotion })}
+            onClick={() => updateSettings({ reduceMotion: !reduceMotion })}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent focus:ring-offset-2 ${
-              settings.reduceMotion ? 'bg-theme-accent' : 'bg-theme-border'
+              reduceMotion ? 'bg-theme-accent' : 'bg-theme-border'
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-theme-sidebar transition-transform ${
-                settings.reduceMotion ? 'translate-x-6' : 'translate-x-1'
+                reduceMotion ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>
@@ -77,7 +80,7 @@ export function AccessibilitySection() {
       </div>
 
       {/* High Contrast Recommendation */}
-      {settings.themeId !== 'high-contrast' && (
+      {themeId !== 'high-contrast' && (
         <div>
           <h3 className="text-base font-medium text-theme-text mb-4">Contraste</h3>
           <div className="p-3 rounded-lg border border-blue-200 bg-blue-50">
@@ -112,7 +115,7 @@ export function AccessibilitySection() {
       </div>
 
       {/* Motion Preview */}
-      {!settings.reduceMotion && (
+      {!reduceMotion && (
         <div>
           <h3 className="text-base font-medium text-theme-text mb-4">Prévia de Movimento</h3>
           <div className="p-3 rounded-lg border border-theme-border bg-theme-sidebar">

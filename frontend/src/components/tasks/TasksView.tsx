@@ -3,26 +3,27 @@
  * 3-column layout: Sidebar (filters) + TaskListPanel + TaskDetailPanel
  */
 
-import { useStore } from '@nanostores/react';
-import { $tasks, $selectedTaskId, selectTask, addTask, updateTask, deleteTask } from '../../../../old-frontend/src/stores/tasksStore';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
-import { $contextState, shouldShowCelebration, getCelebrationLevel, $streakMessage } from '../../../../old-frontend/src/stores/ndStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useNDStore } from '../../stores/ndStore';
+import { selectTask, addTask, updateTask, deleteTask } from '../../stores/tasksStore';
+import { shouldShowCelebration, getCelebrationLevel } from '../../stores/ndStore';
 import { TaskDetail } from './TaskDetail';
 import { TaskDetailEmpty } from './TaskDetailEmpty';
 import { TaskListPanel } from './TaskListPanel';
 import { TaskForm } from './TaskForm';
 import { CelebrationOverlay } from '../celebration/CelebrationOverlay';
 import { ResizableHandle } from '../ui/ResizableHandle';
-import { useResizablePanels } from '../../../../old-frontend/src/hooks/useResizablePanels';
+import { useResizablePanels } from '../../hooks/useResizablePanels';
 import { useState, useEffect } from 'react';
-import type { Task } from '../../../../old-frontend/src/types';
+import type { Task } from '../../types';
 
 export function TasksView() {
-  const tasks = useStore($tasks);
-  const selectedTaskId = useStore($selectedTaskId);
-  const settings = useStore($settings);
-  const contextState = useStore($contextState);
-  const streakMessage = useStore($streakMessage);
+  const tasks = useTasksStore((s) => s.tasks);
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const contextState = useNDStore((s) => s.contextState);
+  const streakMessage = useNDStore((s) => s.getStreakMessage());
   
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
@@ -100,7 +101,7 @@ export function TasksView() {
   if (showTaskForm) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-theme-bg/80 p-6 pt-12 sm:p-8"
+        className="inset-0 z-50 flex items-start justify-center overflow-y-auto bg-theme-bg/80 p-6 pt-12 sm:p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="task-form-title"
@@ -137,7 +138,7 @@ export function TasksView() {
         <div 
           style={{ width: `${leftPanelWidth}px` }}
           className={`shrink-0 ${
-            settings.reduceMotion ? '' : 'transition-opacity duration-300 ease-out'
+            reduceMotion ? '' : 'transition-opacity duration-300 ease-out'
           }`}
         >
           <TaskListPanel
@@ -156,7 +157,7 @@ export function TasksView() {
         {/* Task Detail Panel (Right) - Always visible: task detail or warm welcome */}
         <div
           className={`flex-1 min-w-0 flex flex-col bg-theme-panel overflow-hidden ${
-            settings.reduceMotion ? '' : 'transition-all duration-300 ease-out'
+            reduceMotion ? '' : 'transition-all duration-300 ease-out'
           }`}
         >
           {selectedTaskId ? (

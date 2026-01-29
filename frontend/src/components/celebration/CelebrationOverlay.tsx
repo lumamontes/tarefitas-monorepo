@@ -4,9 +4,8 @@
  * Respects ND settings for animation intensity and sensory considerations
  */
 
-import { useStore } from '@nanostores/react';
 import { useEffect, useState } from 'react';
-import { $settings } from '../../../../old-frontend/src/stores/settingsStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import confetti from 'canvas-confetti';
 
 interface CelebrationOverlayProps {
@@ -17,13 +16,14 @@ interface CelebrationOverlayProps {
 }
 
 export function CelebrationOverlay({ show, level, message, onComplete }: CelebrationOverlayProps) {
-  const settings = useStore($settings);
+  const ndSettings = useSettingsStore((s) => s.ndSettings);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (!show) return;
 
-    const celebrationStyle = settings.ndSettings?.celebrationStyle || 'minimal';
+    const celebrationStyle = ndSettings?.celebrationStyle || 'minimal';
     if (celebrationStyle === 'none') {
       onComplete();
       return;
@@ -44,10 +44,10 @@ export function CelebrationOverlay({ show, level, message, onComplete }: Celebra
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [show, level, settings.ndSettings?.celebrationStyle, onComplete]);
+  }, [show, level, ndSettings?.celebrationStyle, onComplete]);
 
   const triggerConfetti = (level: 'small' | 'medium' | 'large') => {
-    const intensity = settings.ndSettings?.animationIntensity || 'minimal';
+    const intensity = ndSettings?.animationIntensity || 'minimal';
     if (intensity === 'none') return;
 
     const baseConfig = {
@@ -105,18 +105,18 @@ export function CelebrationOverlay({ show, level, message, onComplete }: Celebra
 
   if (!show || !isVisible) return null;
 
-  const celebrationStyle = settings.ndSettings.celebrationStyle;
+  const celebrationStyle = ndSettings?.celebrationStyle ?? 'minimal';
 
   return (
     <div 
       className={`fixed inset-0 flex items-center justify-center z-50 pointer-events-none ${
-        settings.reduceMotion ? '' : 'transition-opacity duration-300'
+        reduceMotion ? '' : 'transition-opacity duration-300'
       } ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       role="alert"
       aria-live="polite"
     >
       <div className={`bg-theme-accent text-white px-8 py-6 rounded-2xl shadow-xl max-w-sm mx-4 text-center ${
-        settings.reduceMotion ? '' : 'animate-pulse'
+        reduceMotion ? '' : 'animate-pulse'
       } ${celebrationStyle === 'minimal' ? 'scale-90' : 'scale-100'}`}>
         <div className="text-4xl mb-3">
           {level === 'large' && '🎉'}

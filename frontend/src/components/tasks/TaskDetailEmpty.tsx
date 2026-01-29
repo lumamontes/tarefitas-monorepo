@@ -3,13 +3,12 @@
  * Minimal, warm empty state when no task is selected.
  */
 
-import { useStore } from '@nanostores/react';
-import { $tasks } from '../../../../old-frontend/src/stores/tasksStore';
-import { getUserName } from '../../../../old-frontend/src/stores/userStore';
+import { useTasksStore } from '../../stores/tasksStore';
+import { getUserName } from '../../shared/lib/user-helpers';
 import { CheckSquare } from 'lucide-react';
 
 export function TaskDetailEmpty() {
-  const tasks = useStore($tasks);
+  const tasks = useTasksStore((s) => s.tasks);
   const userName = getUserName();
   const isFirstTime = tasks.length === 0;
 

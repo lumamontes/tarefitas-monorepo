@@ -3,12 +3,19 @@
  * Pomodoro sound and audio settings
  */
 
-import { useStore } from '@nanostores/react';
-import { $settings, updateSettings, updatePomodoroSettings, resetSounds, resetPomodoro } from '../../../../../old-frontend/src/stores/settingsStore';
+import { useSettingsStore } from '../../../stores/settingsStore';
 import { useState, useRef, useEffect } from 'react';
 
 export function SoundSection() {
-  const settings = useStore($settings);
+  const soundEnabled = useSettingsStore((s) => s.soundEnabled);
+  const soundVolume = useSettingsStore((s) => s.soundVolume);
+  const pomodoroSound = useSettingsStore((s) => s.pomodoroSound);
+  const tickSoundEnabled = useSettingsStore((s) => s.tickSoundEnabled);
+  const pomodoro = useSettingsStore((s) => s.pomodoro);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const updatePomodoroSettings = useSettingsStore((s) => s.updatePomodoroSettings);
+  const resetSounds = useSettingsStore((s) => s.resetSounds);
+  const resetPomodoro = useSettingsStore((s) => s.resetPomodoro);
   const [isPlayingTest, setIsPlayingTest] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -46,7 +53,7 @@ export function SoundSection() {
     const gainNode = audioContext.createGain();
     
     source.buffer = noiseBuffer;
-    gainNode.gain.setValueAtTime(settings.soundVolume * 0.3, audioContext.currentTime); // Lower volume for test
+    gainNode.gain.setValueAtTime(soundVolume * 0.3, audioContext.currentTime); // Lower volume for test
     
     source.connect(gainNode);
     gainNode.connect(audioContext.destination);
@@ -78,7 +85,7 @@ export function SoundSection() {
       // For natural sounds, we'll simulate with a placeholder
       // In a real implementation, you'd load actual audio files
       const audio = new Audio();
-      audio.volume = settings.soundVolume * 0.5;
+      audio.volume = soundVolume * 0.5;
       
       // Placeholder - in real app, load from /public/sounds/
       console.log(`Playing ${soundType} sound (placeholder)`);
@@ -117,14 +124,14 @@ export function SoundSection() {
             </div>
           </div>
           <button
-            onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
+            onClick={() => updateSettings({ soundEnabled: !soundEnabled })}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent focus:ring-offset-2 ${
-              settings.soundEnabled ? 'bg-theme-accent' : 'bg-theme-border'
+              soundEnabled ? 'bg-theme-accent' : 'bg-theme-border'
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-theme-sidebar transition-transform ${
-                settings.soundEnabled ? 'translate-x-6' : 'translate-x-1'
+                soundEnabled ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>
@@ -132,7 +139,7 @@ export function SoundSection() {
       </div>
 
       {/* Pomodoro Sound Selection */}
-      <div className={settings.soundEnabled ? '' : 'opacity-50 pointer-events-none'}>
+      <div className={soundEnabled ? '' : 'opacity-50 pointer-events-none'}>
         <h3 className="text-base font-medium text-theme-text mb-4">Som do Pomodoro</h3>
         <div className="space-y-3">
           {soundOptions.map(option => (
@@ -143,9 +150,9 @@ export function SoundSection() {
                     type="radio"
                     name="pomodoroSound"
                     value={option.value}
-                    checked={settings.pomodoroSound === option.value}
+                    checked={pomodoroSound === option.value}
                     onChange={(e) => updateSettings({ pomodoroSound: e.target.value as any })}
-                    disabled={!settings.soundEnabled}
+                    disabled={!soundEnabled}
                     className="w-4 h-4 text-theme-accent border-theme-border focus:ring-theme-accent focus:ring-2"
                   />
                   <div className="ml-3">
@@ -155,7 +162,7 @@ export function SoundSection() {
                 </label>
               </div>
               
-              {option.value !== 'none' && settings.soundEnabled && (
+              {option.value !== 'none' && soundEnabled && (
                 <button
                   onClick={() => playTestSound(option.value)}
                   disabled={isPlayingTest !== null}
@@ -190,7 +197,7 @@ export function SoundSection() {
       </div>
 
       {/* Volume Control */}
-      <div className={settings.soundEnabled && settings.pomodoroSound !== 'none' ? '' : 'opacity-50 pointer-events-none'}>
+      <div className={soundEnabled && pomodoroSound !== 'none' ? '' : 'opacity-50 pointer-events-none'}>
         <h3 className="text-base font-medium text-theme-text mb-4">Volume</h3>
         <div className="p-3 rounded-lg border border-theme-border">
           <div className="flex items-center gap-3">
@@ -202,21 +209,21 @@ export function SoundSection() {
               min="0"
               max="1"
               step="0.1"
-              value={settings.soundVolume}
+              value={soundVolume}
               onChange={(e) => updateSettings({ soundVolume: parseFloat(e.target.value) })}
-              disabled={!settings.soundEnabled || settings.pomodoroSound === 'none'}
+              disabled={!soundEnabled || pomodoroSound === 'none'}
               className="flex-1 h-2 bg-theme-border rounded-lg appearance-none cursor-pointer slider"
             />
             <svg className="w-4 h-4 text-theme-muted" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
             </svg>
-            <span className="text-sm text-theme-muted min-w-8">{Math.round(settings.soundVolume * 100)}%</span>
+            <span className="text-sm text-theme-muted min-w-8">{Math.round(soundVolume * 100)}%</span>
           </div>
         </div>
       </div>
 
       {/* Tick Sound */}
-      <div className={settings.soundEnabled ? '' : 'opacity-50 pointer-events-none'}>
+      <div className={soundEnabled ? '' : 'opacity-50 pointer-events-none'}>
         <h3 className="text-base font-medium text-theme-text mb-4">Som de Tique</h3>
         <label className="flex items-center justify-between p-3 rounded-lg border border-theme-border hover:border-theme-accent/50 transition-colors cursor-pointer">
           <div>
@@ -226,15 +233,15 @@ export function SoundSection() {
             </div>
           </div>
           <button
-            onClick={() => updateSettings({ tickSoundEnabled: !settings.tickSoundEnabled })}
-            disabled={!settings.soundEnabled}
+            onClick={() => updateSettings({ tickSoundEnabled: !tickSoundEnabled })}
+            disabled={!soundEnabled}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent focus:ring-offset-2 ${
-              settings.tickSoundEnabled && settings.soundEnabled ? 'bg-theme-accent' : 'bg-gray-200'
+              tickSoundEnabled && soundEnabled ? 'bg-theme-accent' : 'bg-gray-200'
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings.tickSoundEnabled && settings.soundEnabled ? 'translate-x-6' : 'translate-x-1'
+                tickSoundEnabled && soundEnabled ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>
@@ -253,7 +260,7 @@ export function SoundSection() {
               type="number"
               min="5"
               max="60"
-              value={settings.pomodoro.focusMinutes}
+              value={pomodoro.focusMinutes}
               onChange={(e) => updatePomodoroSettings({ focusMinutes: parseInt(e.target.value) || 25 })}
               className="w-full px-3 py-2 border border-theme-border rounded-lg bg-theme-sidebar text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-accent"
             />
@@ -266,7 +273,7 @@ export function SoundSection() {
               type="number"
               min="1"
               max="15"
-              value={settings.pomodoro.shortBreakMinutes}
+              value={pomodoro.shortBreakMinutes}
               onChange={(e) => updatePomodoroSettings({ shortBreakMinutes: parseInt(e.target.value) || 5 })}
               className="w-full px-3 py-2 border border-theme-border rounded-lg bg-theme-sidebar text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-accent"
             />
@@ -279,7 +286,7 @@ export function SoundSection() {
               type="number"
               min="15"
               max="30"
-              value={settings.pomodoro.longBreakMinutes}
+              value={pomodoro.longBreakMinutes}
               onChange={(e) => updatePomodoroSettings({ longBreakMinutes: parseInt(e.target.value) || 15 })}
               className="w-full px-3 py-2 border border-theme-border rounded-lg bg-theme-sidebar text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-accent"
             />
