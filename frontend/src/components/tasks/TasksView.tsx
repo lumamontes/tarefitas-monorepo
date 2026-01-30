@@ -6,7 +6,8 @@
 import { useTasksStore } from '../../stores/tasksStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useNDStore } from '../../stores/ndStore';
-import { selectTask, addTask, updateTask, deleteTask } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
+import { addTask, updateTask, deleteTask } from '../../stores/tasksStore';
 import { shouldShowCelebration, getCelebrationLevel } from '../../stores/ndStore';
 import { TaskDetail } from './TaskDetail';
 import { TaskDetailEmpty } from './TaskDetailEmpty';
@@ -15,11 +16,12 @@ import { TaskForm } from './TaskForm';
 import { CelebrationOverlay } from '../celebration/CelebrationOverlay';
 import { ResizableHandle } from '../ui/ResizableHandle';
 import { useResizablePanels } from '../../hooks/useResizablePanels';
+import { toast } from '../../shared/ui/toast.component';
 import { useState, useEffect } from 'react';
 import type { Task } from '../../types';
 
 export function TasksView() {
-  const tasks = useTasksStore((s) => s.tasks);
+  const { tasks } = useTasks();
   const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const contextState = useNDStore((s) => s.contextState);
@@ -65,17 +67,24 @@ export function TasksView() {
     setShowTaskForm(true);
   };
 
-  const handleSaveTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'order'>) => {
-    if (editingTask) {
-      // Update existing task
-      updateTask(editingTask.id, taskData);
-    } else {
-      // Create new task
-      const newTaskId = addTask(taskData);
-      selectTask(newTaskId);
+  const handleSaveTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'order'>) => {
+    try {
+      if (editingTask) {
+        await updateTask(editingTask.id, taskData);
+      } else {
+        const newTaskId = await addTask(taskData);
+        useTasksStore.getState().selectTask(newTaskId);
+      }
+      setShowTaskForm(false);
+      setEditingTask(undefined);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes('Tauri app') || msg.includes('pnpm tauri dev')) {
+        toast.error('Tasks are saved only in the Tauri app. Run: pnpm tauri dev');
+      } else {
+        toast.error(msg || 'Failed to save task');
+      }
     }
-    setShowTaskForm(false);
-    setEditingTask(undefined);
   };
 
   const handleCancelTask = () => {
@@ -83,17 +92,14 @@ export function TasksView() {
     setEditingTask(undefined);
   };
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = async (taskId: string) => {
     if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
-      deleteTask(taskId);
-      if (selectedTaskId === taskId) {
-        selectTask(null);
-      }
+      await deleteTask(taskId);
     }
   };
 
   const handleSelectTask = (taskId: string) => {
-    selectTask(taskId);
+    useTasksStore.getState().selectTask(taskId);
     setShowTaskForm(false);
   };
 
@@ -177,7 +183,7 @@ export function TasksView() {
             {/* Back button */}
             <div className="p-4 border-b border-theme-border bg-theme-sidebar">
               <button
-                onClick={() => selectTask(null)}
+                onClick={() => useTasksStore.getState().selectTask(null)}
                 className="flex items-center gap-2 text-theme-text hover:text-theme-accent transition-colors"
                 aria-label="Voltar para lista de tarefas"
               >

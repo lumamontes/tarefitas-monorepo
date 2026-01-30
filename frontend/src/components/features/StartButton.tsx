@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { useTasksStore } from '../../stores/tasksStore';
+import { useSubtasks } from '../../hooks/useSubtasks';
 import { setCurrentSection } from '../../stores/settingsStore';
 
 interface StartButtonProps {
@@ -12,7 +13,7 @@ interface StartButtonProps {
 }
 
 export function StartButton({ taskId }: StartButtonProps) {
-  const subtasks = useTasksStore((s) => s.getSelectedTaskSubtasks());
+  const { subtasks } = useSubtasks(taskId);
   const [showInitiation, setShowInitiation] = useState(false);
   const [selectedSubtask, setSelectedSubtask] = useState<string | null>(null);
   

@@ -5,7 +5,9 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTasksStore } from '../../stores/tasksStore';
-import { computeFilteredTasks } from '../../stores/tasksStore';
+import { computeFilteredTasks, updateTask } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
+import { useAllSubtasks } from '../../hooks/useSubtasks';
 import { TaskDetailTopBar } from './TaskDetailTopBar';
 import { TaskSummaryStrip } from './TaskSummaryStrip';
 import { SubtasksSection } from './SubtasksSection';
@@ -25,12 +27,11 @@ interface UndoAction {
 }
 
 export function TaskDetailPanel({ onDelete }: TaskDetailPanelProps) {
-  const tasks = useTasksStore((s) => s.tasks);
+  const { tasks } = useTasks();
+  const { subtasks } = useAllSubtasks();
   const taskFilter = useTasksStore((s) => s.taskFilter);
-  const subtasks = useTasksStore((s) => s.subtasks);
   const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
   const selectTask = useTasksStore((s) => s.selectTask);
-  const updateTask = useTasksStore((s) => s.updateTask);
 
   const filteredTasks = useMemo(
     () => computeFilteredTasks(tasks, taskFilter, subtasks),
@@ -126,14 +127,12 @@ export function TaskDetailPanel({ onDelete }: TaskDetailPanelProps) {
 
   const handleArchive = () => {
     if (!selectedTask) return;
-    
     const wasArchived = selectedTask.archived;
     updateTask(selectedTask.id, { archived: !wasArchived });
-    
     setUndoAction({
       type: 'archive',
       taskId: selectedTask.id,
-      taskData: { archived: wasArchived }
+      taskData: { archived: wasArchived },
     });
   };
 
@@ -148,15 +147,9 @@ export function TaskDetailPanel({ onDelete }: TaskDetailPanelProps) {
 
   const handleUndo = () => {
     if (!undoAction) return;
-
     if (undoAction.type === 'archive') {
       updateTask(undoAction.taskId, { archived: undoAction.taskData.archived });
-    } else if (undoAction.type === 'delete' && onDelete) {
-      // For delete, we'd need to restore the task - this would require
-      // a restoreTask function in the store. For now, just clear the undo action.
-      // In a full implementation, you'd restore the task here.
     }
-    
     setUndoAction(null);
   };
 

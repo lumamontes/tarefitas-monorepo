@@ -3,7 +3,7 @@
  * Minimal create/edit task: title + optional description.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { Task } from '../../types';
 import { Button } from '../ui/Button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -20,14 +20,6 @@ export function TaskForm({ task, onSave, onCancel, isLoading = false }: TaskForm
   const [showDetails, setShowDetails] = useState(false);
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (task) {
-      setTitle(task.title);
-      setDescription(task.description || '');
-      setShowDetails(true);
-    }
-  }, [task]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

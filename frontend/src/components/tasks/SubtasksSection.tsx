@@ -4,34 +4,33 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useTasksStore } from '../../stores/tasksStore';
+import { addSubtask, toggleSubtaskDone } from '../../stores/tasksStore';
+import { useSubtasks } from '../../hooks/useSubtasks';
+import { usePref } from '../../hooks/usePrefs';
+import { setPreference } from '../../domain/usecases/setPreference';
 import { SubtaskRow } from './SubtaskRow';
 import type { Task } from '../../types';
+
+const OVERWHELM_MODE_KEY = 'tarefitas_overwhelm_mode';
 
 interface SubtasksSectionProps {
   task: Task;
 }
 
-// Overwhelm mode preference (stored in localStorage)
-const OVERWHELM_MODE_KEY = 'tarefitas_overwhelm_mode';
-
 export function SubtasksSection({ task }: SubtasksSectionProps) {
-  const addSubtask = useTasksStore((state) => state.addSubtask);
-  const toggleSubtaskDone = useTasksStore((state) => state.toggleSubtaskDone);
-  const subtasks = useTasksStore((state) => state.subtasks);
+  const { subtasks } = useSubtasks(task.id);
+  const { value: overwhelmPref } = usePref(OVERWHELM_MODE_KEY);
+  const overwhelmMode = overwhelmPref === true || overwhelmPref === 'true';
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [selectedSubtaskId, setSelectedSubtaskId] = useState<string | null>(null);
-  const [overwhelmMode, setOverwhelmMode] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(OVERWHELM_MODE_KEY) === 'true';
-  });
+  const setOverwhelmMode = (v: boolean) => setPreference(OVERWHELM_MODE_KEY, v);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Initialize selected subtask to first incomplete
   useEffect(() => {
     if (subtasks.length > 0 && !selectedSubtaskId) {
-      const firstIncomplete = subtasks.find(s => !s.done);
+      const firstIncomplete = subtasks.find((s) => !s.done);
       if (firstIncomplete) {
         setSelectedSubtaskId(firstIncomplete.id);
       } else {
@@ -39,13 +38,6 @@ export function SubtasksSection({ task }: SubtasksSectionProps) {
       }
     }
   }, [subtasks, selectedSubtaskId]);
-
-  // Persist overwhelm mode
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(OVERWHELM_MODE_KEY, overwhelmMode.toString());
-    }
-  }, [overwhelmMode]);
 
   // Keyboard navigation for subtasks
   useEffect(() => {
@@ -87,26 +79,25 @@ export function SubtasksSection({ task }: SubtasksSectionProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [subtasks, selectedSubtaskId, isAdding]);
 
-  const handleAddSubtask = () => {
+  const handleAddSubtask = async () => {
     if (newSubtaskTitle.trim()) {
-      addSubtask(task.id, newSubtaskTitle.trim());
+      await addSubtask(task.id, newSubtaskTitle.trim());
       setNewSubtaskTitle('');
       setIsAdding(false);
     }
   };
 
-  const handleGenerateSteps = (count: number) => {
+  const handleGenerateSteps = async (count: number) => {
     const stepTemplates = [
       'Primeiro passo',
       'Preparar',
       'Executar',
       'Revisar',
-      'Finalizar'
+      'Finalizar',
     ];
-    
     for (let i = 0; i < count; i++) {
-      const title = stepTemplates[i] || `Passo ${i + 1}`;
-      addSubtask(task.id, title);
+      const title = stepTemplates[i] ?? `Passo ${i + 1}`;
+      await addSubtask(task.id, title);
     }
   };
 

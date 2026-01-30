@@ -5,23 +5,26 @@
  */
 
 import { useTasksStore } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
+import { useAllSubtasks } from '../../hooks/useSubtasks';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useNDStore } from '../../stores/ndStore';
-import { selectTask, getTaskProgress } from '../../stores/tasksStore';
+import { selectTask, getTaskProgress, computeFilteredTasks } from '../../stores/tasksStore';
 import { useState, useMemo } from 'react';
 import { Button } from '../ui/Button';
 import { Shuffle } from 'lucide-react';
 
 interface TaskCardProps {
   task: any;
+  subtasks: import('../../types').Subtask[];
   priority: 'must-do' | 'should-do' | 'nice-to-do';
   timeEstimate: string;
   onSelect: (taskId: string) => void;
 }
 
-function TaskCard({ task, priority, timeEstimate, onSelect }: TaskCardProps) {
+function TaskCard({ task, subtasks, priority, timeEstimate, onSelect }: TaskCardProps) {
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
-  const progress = getTaskProgress(task.id);
+  const progress = getTaskProgress(subtasks, task.id);
 
   const priorityStyles = {
     'must-do': 'border-red-200 bg-red-50 text-red-800',
@@ -81,14 +84,20 @@ function TaskCard({ task, priority, timeEstimate, onSelect }: TaskCardProps) {
 }
 
 export function TodaysPriorities() {
-  const tasks = useTasksStore((s) => s.getFilteredTasks());
+  const { tasks } = useTasks();
+  const { subtasks } = useAllSubtasks();
+  const taskFilter = useTasksStore((s) => s.taskFilter);
+  const filteredTasks = useMemo(
+    () => computeFilteredTasks(tasks, taskFilter, subtasks),
+    [tasks, taskFilter, subtasks]
+  );
   const randomizeOrder = useSettingsStore((s) => s.ndSettings?.randomizeOrder);
   const energyLevel = useNDStore((s) => s.energyLevel);
   const [randomSeed, setRandomSeed] = useState(0);
 
   // Calculate time estimates based on subtasks
   const getTimeEstimate = (task: any) => {
-    const progress = getTaskProgress(task.id);
+    const progress = getTaskProgress(subtasks, task.id);
     const remainingTasks = progress.total - progress.completed;
     
     if (remainingTasks === 0) return '5min'; // Just marking complete
@@ -99,7 +108,7 @@ export function TodaysPriorities() {
 
   // Prioritize tasks based on various factors
   const prioritizedTasks = useMemo(() => {
-    let availableTasks = [...tasks].filter(task => !task.archived);
+    let availableTasks = [...filteredTasks].filter((task) => !task.archived);
     
     // Randomize if user preference is set
     if (randomizeOrder) {
@@ -115,7 +124,7 @@ export function TodaysPriorities() {
     const niceToDo = [];
 
     for (const task of availableTasks) {
-      const progress = getTaskProgress(task.id);
+      const progress = getTaskProgress(subtasks, task.id);
       const isNearComplete = progress.total > 0 && progress.percentage > 75;
       const hasSubtasks = progress.total > 0;
       const timeEstimate = getTimeEstimate(task);
@@ -138,7 +147,7 @@ export function TodaysPriorities() {
       shouldDo: shouldDo.slice(0, 1), 
       niceToDo: niceToDo.slice(0, 1)
     };
-  }, [tasks, energyLevel, randomizeOrder, randomSeed]);
+  }, [filteredTasks, subtasks, energyLevel, randomizeOrder, randomSeed]);
 
   const handleTaskSelect = (taskId: string) => {
     selectTask(taskId);
@@ -148,7 +157,7 @@ export function TodaysPriorities() {
     setRandomSeed(Math.random());
   };
 
-  if (tasks.length === 0) {
+  if (filteredTasks.length === 0) {
     return (
       <div className="bg-theme-sidebar rounded-xl p-6 text-center">
         <p className="text-theme-muted">Nenhuma tarefa para hoje. Que tal criar uma? 🌱</p>
@@ -182,6 +191,7 @@ export function TodaysPriorities() {
               <TaskCard
                 key={task.id}
                 task={task}
+                subtasks={subtasks}
                 priority="must-do"
                 timeEstimate={getTimeEstimate(task)}
                 onSelect={handleTaskSelect}
@@ -197,6 +207,7 @@ export function TodaysPriorities() {
               <TaskCard
                 key={task.id}
                 task={task}
+                subtasks={subtasks}
                 priority="should-do"
                 timeEstimate={getTimeEstimate(task)}
                 onSelect={handleTaskSelect}
@@ -212,6 +223,7 @@ export function TodaysPriorities() {
               <TaskCard
                 key={task.id}
                 task={task}
+                subtasks={subtasks}
                 priority="nice-to-do"
                 timeEstimate={getTimeEstimate(task)}
                 onSelect={handleTaskSelect}

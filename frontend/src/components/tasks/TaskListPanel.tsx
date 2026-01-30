@@ -1,12 +1,12 @@
 /**
  * TaskListPanel Component
- * Center panel showing filtered tasks with progress bars
+ * Center panel showing filtered tasks with progress bars.
+ * Uses TasksDataContext (composition) — no prop drilling of tasks/subtasks.
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useTasksStore } from '../../stores/tasksStore';
+import { useTasksData } from '../../state/TasksDataContext';
 import { useSettingsStore } from '../../stores/settingsStore';
-import { selectTask, getTaskProgress, computeFilteredTasks } from '../../stores/tasksStore';
 import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -18,17 +18,11 @@ interface TaskListPanelProps {
 }
 
 export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps) {
-  const tasks = useTasksStore((s) => s.tasks);
-  const taskFilter = useTasksStore((s) => s.taskFilter);
-  const subtasks = useTasksStore((s) => s.subtasks);
-  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const { state, actions, meta } = useTasksData();
+  const { filteredTasks, selectedTaskId } = state;
   const executiveLoad = useSettingsStore((s) => s.ndSettings?.executiveLoad);
   const showProgressBars = useSettingsStore((s) => s.showProgressBars);
 
-  const filteredTasks = useMemo(
-    () => computeFilteredTasks(tasks, taskFilter, subtasks),
-    [tasks, taskFilter, subtasks]
-  );
   const isMinimalMode = (executiveLoad ?? 'standard') === 'minimal';
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
@@ -50,7 +44,7 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
           (selectedTaskId ? displayTasks.findIndex(t => t.id === selectedTaskId) : 0);
         const nextIndex = Math.min(currentIndex + 1, displayTasks.length - 1);
         setFocusedIndex(nextIndex);
-        selectTask(displayTasks[nextIndex].id);
+        actions.selectTask(displayTasks[nextIndex].id);
       }
     },
     { key: 'ArrowDown', enabled: true, ignoreInputs: true }
@@ -63,7 +57,7 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
           (selectedTaskId ? displayTasks.findIndex(t => t.id === selectedTaskId) : 0);
         const nextIndex = Math.min(currentIndex + 1, displayTasks.length - 1);
         setFocusedIndex(nextIndex);
-        selectTask(displayTasks[nextIndex].id);
+        actions.selectTask(displayTasks[nextIndex].id);
       }
     },
     { key: 'j', enabled: true, ignoreInputs: true }
@@ -77,7 +71,7 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
           (selectedTaskId ? displayTasks.findIndex(t => t.id === selectedTaskId) : 0);
         const prevIndex = Math.max(currentIndex - 1, 0);
         setFocusedIndex(prevIndex);
-        selectTask(displayTasks[prevIndex].id);
+        actions.selectTask(displayTasks[prevIndex].id);
       }
     },
     { key: 'ArrowUp', enabled: true, ignoreInputs: true }
@@ -90,7 +84,7 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
           (selectedTaskId ? displayTasks.findIndex(t => t.id === selectedTaskId) : 0);
         const prevIndex = Math.max(currentIndex - 1, 0);
         setFocusedIndex(prevIndex);
-        selectTask(displayTasks[prevIndex].id);
+        actions.selectTask(displayTasks[prevIndex].id);
       }
     },
     { key: 'k', enabled: true, ignoreInputs: true }
@@ -117,7 +111,7 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
   }, [selectedTaskId, displayTasks]);
 
   const handleTaskClick = (taskId: string) => {
-    selectTask(taskId);
+    actions.selectTask(taskId);
     onTaskSelect(taskId);
     setFocusedIndex(displayTasks.findIndex(t => t.id === taskId));
   };
@@ -159,7 +153,7 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
         ) : (
           <div className="space-y-2">
             {displayTasks.map((task, index) => {
-              const progress = getTaskProgress(task.id);
+              const progress = meta.getTaskProgress(task.id);
               const isCompleted = progress.total > 0 && progress.percentage === 100;
               const isSelected = task.id === selectedTaskId;
               const isFocused = index === focusedIndex;

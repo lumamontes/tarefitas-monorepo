@@ -15,6 +15,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/calendar": "Tarefitas — Calendário",
   "/focus": "Tarefitas — Foco",
   "/pomodoro": "Tarefitas — Pomodoro",
+  "/pomodoro-popup": "Tarefitas — Timer",
   "/settings": "Tarefitas — Configurações",
   "/onboarding/nome": "Tarefitas — Como te chamamos?",
 };
@@ -23,6 +24,7 @@ function useShowSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   if (pathname === "/") return false;
   if (pathname.startsWith("/onboarding")) return false;
+  if (pathname === "/pomodoro-popup") return false; // Popup window shouldn't show sidebar
   return APP_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
 }
 

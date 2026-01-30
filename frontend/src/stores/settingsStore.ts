@@ -1,11 +1,24 @@
 /**
  * Settings Store (Zustand)
- * Comprehensive settings for neurodivergent-friendly customization
+ * UI + preferences. Preferences persist to SQLite via setPreference('settings', ...).
+ * No localStorage persist — hydrated from DB on init.
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { SettingsState, NDSettings, ThemeId, CustomPalette, Section } from '../types';
+import { setPreference } from '../domain/usecases/setPreference';
+import { queryClient, queryKeys } from '../query/client';
+
+function persistSettingsToDb(): void {
+  try {
+    const state = useSettingsStore.getState();
+    const { previousSettings, ...toSave } = state;
+    setPreference('settings', toSave);
+    queryClient.invalidateQueries({ queryKey: queryKeys.prefs() });
+  } catch {
+    // Not in Tauri or DB not ready
+  }
+}
 
 // Predefined theme palettes
 const themePalettes: Record<Exclude<ThemeId, 'custom'>, CustomPalette> = {
@@ -106,69 +119,73 @@ interface SettingsStore extends SettingsState {
   resetPomodoro: () => void;
   pauseEverything: () => void;
   initializeSettings: () => void;
+  loadSettingsFromDb: () => Promise<void>;
   applyTheme: () => void;
   applyFont: () => void;
   getCurrentPalette: () => CustomPalette;
 }
 
-export const useSettingsStore = create<SettingsStore>()(
-  persist(
-    (set, get) => ({
-      ...defaultSettings,
-      currentSection: 'tasks',
-      previousSettings: null,
+export const useSettingsStore = create<SettingsStore>()((set, get) => ({
+  ...defaultSettings,
+  currentSection: 'tasks',
+  previousSettings: null,
 
-      updateSettings: (updates) => {
-        const current = get();
-        set({ 
-          previousSettings: current,
-          ...current,
-          ...updates 
-        });
-        get().applyTheme();
-        get().applyFont();
-      },
+  updateSettings: (updates) => {
+    const current = get();
+    set({
+      previousSettings: current,
+      ...current,
+      ...updates,
+    });
+    get().applyTheme();
+    get().applyFont();
+    persistSettingsToDb();
+  },
 
-      updateNDSettings: (updates) => {
-        const current = get();
-        set({
-          previousSettings: current,
-          ...current,
-          ndSettings: { ...current.ndSettings, ...updates }
-        });
-        get().applyTheme();
-      },
+  updateNDSettings: (updates) => {
+    const current = get();
+    set({
+      previousSettings: current,
+      ...current,
+      ndSettings: { ...current.ndSettings, ...updates },
+    });
+    get().applyTheme();
+    persistSettingsToDb();
+  },
 
-      updatePomodoroSettings: (updates) => {
-        const current = get();
-        set({
-          previousSettings: current,
-          ...current,
-          pomodoro: { ...current.pomodoro, ...updates }
-        });
-      },
+  updatePomodoroSettings: (updates) => {
+    const current = get();
+    set({
+      previousSettings: current,
+      ...current,
+      pomodoro: { ...current.pomodoro, ...updates },
+    });
+    persistSettingsToDb();
+  },
 
-      updateCustomPalette: (updates) => {
-        const current = get();
-        set({
-          previousSettings: current,
-          ...current,
-          themeId: 'custom' as ThemeId,
-          customPalette: { ...current.customPalette, ...updates }
-        });
-        get().applyTheme();
-      },
+  updateCustomPalette: (updates) => {
+    const current = get();
+    set({
+      previousSettings: current,
+      ...current,
+      themeId: 'custom' as ThemeId,
+      customPalette: { ...current.customPalette, ...updates },
+    });
+    get().applyTheme();
+    persistSettingsToDb();
+  },
 
       setCurrentSection: (section) => {
         set({ currentSection: section });
       },
 
-      resetSettings: () => {
-        set({ previousSettings: get() });
-        set(defaultSettings);
-        get().applyTheme();
-        get().applyFont();
-      },
+  resetSettings: () => {
+    set({ previousSettings: get() });
+    set(defaultSettings);
+    get().applyTheme();
+    get().applyFont();
+    persistSettingsToDb();
+  },
 
       undoSettings: () => {
         const previous = get().previousSettings;
@@ -182,63 +199,83 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       },
 
-      resetAppearance: () => {
-        const current = get();
-        set({
-          previousSettings: current,
-          ...current,
-          themeId: defaultSettings.themeId,
-          customPalette: defaultSettings.customPalette,
-          density: defaultSettings.density,
-          showProgressBars: defaultSettings.showProgressBars
-        });
-        get().applyTheme();
-      },
+  resetAppearance: () => {
+    const current = get();
+    set({
+      previousSettings: current,
+      ...current,
+      themeId: defaultSettings.themeId,
+      customPalette: defaultSettings.customPalette,
+      density: defaultSettings.density,
+      showProgressBars: defaultSettings.showProgressBars,
+    });
+    get().applyTheme();
+    persistSettingsToDb();
+  },
 
-      resetSounds: () => {
-        const current = get();
-        set({
-          previousSettings: current,
-          ...current,
-          soundEnabled: defaultSettings.soundEnabled,
-          pomodoroSound: defaultSettings.pomodoroSound,
-          soundVolume: defaultSettings.soundVolume,
-          tickSoundEnabled: defaultSettings.tickSoundEnabled
-        });
-      },
+  resetSounds: () => {
+    const current = get();
+    set({
+      previousSettings: current,
+      ...current,
+      soundEnabled: defaultSettings.soundEnabled,
+      pomodoroSound: defaultSettings.pomodoroSound,
+      soundVolume: defaultSettings.soundVolume,
+      tickSoundEnabled: defaultSettings.tickSoundEnabled,
+    });
+    persistSettingsToDb();
+  },
 
-      resetPomodoro: () => {
-        const current = get();
-        set({
-          previousSettings: current,
-          ...current,
-          pomodoro: defaultSettings.pomodoro
-        });
-      },
+  resetPomodoro: () => {
+    const current = get();
+    set({
+      previousSettings: current,
+      ...current,
+      pomodoro: defaultSettings.pomodoro,
+    });
+    persistSettingsToDb();
+  },
 
-      pauseEverything: () => {
-        const current = get();
-        set({
-          previousSettings: current,
-          ...current,
-          soundEnabled: false,
-          reduceMotion: true
-        });
-      },
+  pauseEverything: () => {
+    const current = get();
+    set({
+      previousSettings: current,
+      ...current,
+      soundEnabled: false,
+      reduceMotion: true,
+    });
+    persistSettingsToDb();
+  },
 
-      initializeSettings: () => {
-        if (typeof window === 'undefined') return;
-        
-        const settings = get();
-        if (settings.themeId === 'custom' && (!settings.customPalette || !settings.customPalette.bg)) {
-          set({
-            ...settings,
-            customPalette: settings.customPalette || themePalettes['calm-beige']
-          });
-        }
-        get().applyTheme();
-        get().applyFont();
-      },
+  initializeSettings: () => {
+    if (typeof window === 'undefined') return;
+    const settings = get();
+    if (settings.themeId === 'custom' && (!settings.customPalette || !settings.customPalette.bg)) {
+      set({
+        ...settings,
+        customPalette: settings.customPalette || themePalettes['calm-beige'],
+      });
+    }
+    get().applyTheme();
+    get().applyFont();
+  },
+
+  loadSettingsFromDb: async () => {
+    try {
+      const { getDb } = await import('../db');
+      const prefsRepo = await import('../db/repos/prefsRepo');
+      const db = await getDb();
+      const raw = await prefsRepo.get('settings', db);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<SettingsState>;
+        useSettingsStore.setState((s) => ({ ...s, ...parsed, previousSettings: null }));
+        useSettingsStore.getState().applyTheme();
+        useSettingsStore.getState().applyFont();
+      }
+    } catch {
+      // Not in Tauri or DB not ready
+    }
+  },
 
       applyTheme: () => {
         if (typeof document === 'undefined') return;
@@ -359,20 +396,14 @@ export const useSettingsStore = create<SettingsStore>()(
         root.style.setProperty('--font-size-base', scaleMap[settings.fontScale]);
       },
 
-      getCurrentPalette: () => {
-        const settings = get();
-        if (settings.themeId === 'custom') {
-          return settings.customPalette || themePalettes['calm-beige'];
-        }
-        return themePalettes[settings.themeId] || themePalettes['calm-beige'];
-      },
-    }),
-    {
-      name: 'tarefitas-settings',
-      version: 1,
+  getCurrentPalette: () => {
+    const settings = get();
+    if (settings.themeId === 'custom') {
+      return settings.customPalette || themePalettes['calm-beige'];
     }
-  )
-);
+    return themePalettes[settings.themeId] || themePalettes['calm-beige'];
+  },
+}));
 
 // --- Action wrappers (for components importing updateSettings, resetSettings, etc.) ---
 

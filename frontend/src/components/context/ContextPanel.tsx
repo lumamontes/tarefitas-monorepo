@@ -6,6 +6,7 @@
 
 import { useNDStore } from '../../stores/ndStore';
 import { useTasksStore } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { selectTask } from '../../stores/tasksStore';
 import { Clock, ArrowLeft, Coffee } from 'lucide-react';
@@ -13,7 +14,7 @@ import { Button } from '../ui/Button';
 
 export function ContextPanel() {
   const contextState = useNDStore((s) => s.contextState);
-  const tasks = useTasksStore((s) => s.tasks);
+  const { tasks } = useTasks();
   const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
   const currentSection = useSettingsStore((s) => s.currentSection);
   const contextReminders = useSettingsStore((s) => s.ndSettings?.contextReminders);

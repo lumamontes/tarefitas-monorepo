@@ -3,10 +3,10 @@
  * Standalone popup window version of the mini pomodoro timer
  */
 
-import React from 'react';
 import { usePomodoroStore } from '../../stores/pomodoroStore';
 import { startPomodoroCountdown, pausePomodoroCountdown, resetPomodoroCountdown, nextPomodoroMode } from '../../stores/pomodoroStore';
 import { useTasksStore } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
 import { useStoreInit } from '../../hooks/useStoreInit';
 
 export function MiniPomodoroPopup() {
@@ -15,7 +15,9 @@ export function MiniPomodoroPopup() {
   const mode = usePomodoroStore((s) => s.mode);
   const isActive = usePomodoroStore((s) => s.isActive);
   const hasFinished = usePomodoroStore((s) => s.hasFinished);
-  const selectedTask = useTasksStore((s) => s.getSelectedTask());
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const { tasks } = useTasks();
+  const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
 
   // Initialize stores using centralized hook
   useStoreInit({

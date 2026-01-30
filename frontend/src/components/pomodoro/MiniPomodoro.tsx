@@ -10,6 +10,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { useMiniTimerStore } from '../../stores/miniTimerStore';
 import { setMiniTimerPosition, toggleMiniTimerCollapsed, disableMiniTimer } from '../../stores/miniTimerStore';
 import { useTasksStore } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
 
 const MINI_TIMER_WIDTH = 280;
 const MINI_TIMER_HEIGHT = 180;
@@ -25,7 +26,9 @@ export function MiniPomodoro() {
   const miniEnabled = useMiniTimerStore((s) => s.miniEnabled);
   const miniPosition = useMiniTimerStore((s) => s.miniPosition);
   const miniCollapsed = useMiniTimerStore((s) => s.miniCollapsed);
-  const selectedTask = useTasksStore((s) => s.getSelectedTask());
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const { tasks } = useTasks();
+  const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) ?? null;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });

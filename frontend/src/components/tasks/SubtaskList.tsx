@@ -3,8 +3,9 @@
  * List of subtasks with add functionality
  */
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useTasksStore } from '../../stores/tasksStore';
+import { useSubtasks } from '../../hooks/useSubtasks';
 import { addSubtask, toggleSubtaskDone, updateSubtask, deleteSubtask } from '../../stores/tasksStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 
@@ -13,17 +14,7 @@ interface SubtaskListProps {
 }
 
 export function SubtaskList({ taskId }: SubtaskListProps) {
-  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
-  const subtasksRaw = useTasksStore((s) => s.subtasks);
-  const subtasks = useMemo(
-    () =>
-      selectedTaskId === taskId
-        ? subtasksRaw
-            .filter((s) => s.taskId === selectedTaskId)
-            .sort((a, b) => a.order - b.order)
-        : [],
-    [taskId, selectedTaskId, subtasksRaw]
-  );
+  const { subtasks } = useSubtasks(taskId);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   

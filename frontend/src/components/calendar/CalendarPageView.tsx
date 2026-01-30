@@ -14,6 +14,8 @@ import {
   selectTask,
   updateTask,
 } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
+import { useAllSubtasks } from '../../hooks/useSubtasks';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { setCurrentSection } from '../../stores/settingsStore';
 import { parseDateLocal, getTodayString, getDateStringsInMonth } from '../../shared/lib/time.utils';
@@ -25,14 +27,16 @@ const MONTHS = [
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ];
 
-function dayHasTasks(dateStr: string): boolean {
+function dayHasTasks(tasks: import('../../types').Task[], dateStr: string): boolean {
   return (
-    getScheduledTasksForDate(dateStr).length > 0 || getRecurringTasksForDate(dateStr).length > 0
+    getScheduledTasksForDate(tasks, dateStr).length > 0 ||
+    getRecurringTasksForDate(tasks, dateStr).length > 0
   );
 }
 
 export function CalendarPageView() {
-  const tasks = useTasksStore((s) => s.tasks);
+  const { tasks } = useTasks();
+  const { subtasks } = useAllSubtasks();
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const density = useSettingsStore((s) => s.density);
   const fontScale = useSettingsStore((s) => s.fontScale);
@@ -60,7 +64,7 @@ export function CalendarPageView() {
       const months: number[] = [];
       for (let m = 0; m < 12; m++) {
         const daysInMonth = getDateStringsInMonth(year, m);
-        const hasAny = daysInMonth.some((d) => dayHasTasks(d));
+        const hasAny = daysInMonth.some((d) => dayHasTasks(tasks, d));
         if (hasAny) months.push(m);
       }
       if (months.length === 0 && year === currentYear) months.push(currentMonth);
@@ -72,7 +76,7 @@ export function CalendarPageView() {
       for (const month of monthsByYear[year] ?? []) {
         const key = `${year}-${month}`;
         const daysInMonth = getDateStringsInMonth(year, month);
-        const daysWithTasks = daysInMonth.filter((d) => dayHasTasks(d));
+        const daysWithTasks = daysInMonth.filter((d) => dayHasTasks(tasks, d));
         const days =
           daysWithTasks.length > 0
             ? daysWithTasks
@@ -192,6 +196,8 @@ export function CalendarPageView() {
             toggleMonth={toggleMonth}
             toggleDay={toggleDay}
             onAssignDate={setAssignModalDate}
+            tasks={tasks}
+            subtasks={subtasks}
             reduceMotion={reduceMotion}
             density={density}
             fontScale={fontScale}
@@ -223,6 +229,8 @@ interface YearFolderProps {
   toggleMonth: (year: number, month: number) => void;
   toggleDay: (dateStr: string) => void;
   onAssignDate: (dateStr: string | null) => void;
+  tasks: import('../../types').Task[];
+  subtasks: import('../../types').Subtask[];
   reduceMotion: boolean;
   density: 'comfortable' | 'compact';
   fontScale: 'sm' | 'md' | 'lg' | 'xl';
@@ -241,6 +249,8 @@ function YearFolder({
   toggleMonth,
   toggleDay,
   onAssignDate,
+  tasks,
+  subtasks,
   reduceMotion,
   density,
   fontScale,
@@ -285,6 +295,8 @@ function YearFolder({
               expandedDays={expandedDays}
               toggleDay={toggleDay}
               onAssignDate={onAssignDate}
+              tasks={tasks}
+              subtasks={subtasks}
               reduceMotion={reduceMotion}
               density={density}
               fontScale={fontScale}
@@ -308,6 +320,8 @@ interface MonthFolderProps {
   expandedDays: Set<string>;
   toggleDay: (dateStr: string) => void;
   onAssignDate: (dateStr: string | null) => void;
+  tasks: import('../../types').Task[];
+  subtasks: import('../../types').Subtask[];
   reduceMotion: boolean;
   density: 'comfortable' | 'compact';
   fontScale: 'sm' | 'md' | 'lg' | 'xl';
@@ -325,6 +339,8 @@ function MonthFolder({
   expandedDays,
   toggleDay,
   onAssignDate,
+  tasks,
+  subtasks,
   reduceMotion,
   density,
   fontScale,
@@ -363,6 +379,8 @@ function MonthFolder({
               isExpanded={expandedDays.has(dateStr)}
               onToggle={() => toggleDay(dateStr)}
               onAssignDate={onAssignDate}
+              tasks={tasks}
+              subtasks={subtasks}
               reduceMotion={reduceMotion}
               density={density}
               fontScale={fontScale}
@@ -381,6 +399,8 @@ interface DaySectionProps {
   isExpanded: boolean;
   onToggle: () => void;
   onAssignDate: (dateStr: string | null) => void;
+  tasks: import('../../types').Task[];
+  subtasks: import('../../types').Subtask[];
   reduceMotion: boolean;
   density: 'comfortable' | 'compact';
   fontScale: 'sm' | 'md' | 'lg' | 'xl';
@@ -393,6 +413,8 @@ function DaySection({
   isExpanded,
   onToggle,
   onAssignDate,
+  tasks,
+  subtasks,
   reduceMotion,
   density,
   fontScale,
@@ -403,8 +425,8 @@ function DaySection({
   const date = parseDateLocal(dateStr);
   const dayNum = date.getDate();
   const isToday = dateStr === todayStr;
-  const scheduledTasks = useMemo(() => getScheduledTasksForDate(dateStr), [dateStr]);
-  const recurringTasks = useMemo(() => getRecurringTasksForDate(dateStr), [dateStr]);
+  const scheduledTasks = useMemo(() => getScheduledTasksForDate(tasks, dateStr), [tasks, dateStr]);
+  const recurringTasks = useMemo(() => getRecurringTasksForDate(tasks, dateStr), [tasks, dateStr]);
   const hasTasks = scheduledTasks.length > 0 || recurringTasks.length > 0;
 
   const fontCls =
@@ -460,6 +482,7 @@ function DaySection({
                   <div className={spacingClass}>
                     {scheduledTasks.map((task) => (
                       <DayTaskRow
+                        subtasks={subtasks}
                         key={task.id}
                         task={task}
                         onUnassign={(e) => {
@@ -482,6 +505,7 @@ function DaySection({
                   <div className={spacingClass}>
                     {recurringTasks.map((task) => (
                       <DayTaskRow
+                        subtasks={subtasks}
                         key={task.id}
                         task={task}
                         isRecurring
@@ -512,6 +536,7 @@ function DaySection({
 
 interface DayTaskRowProps {
   task: { id: string; title: string; description?: string; recurring?: { type: string } };
+  subtasks: import('../../types').Subtask[];
   onUnassign?: (e: React.MouseEvent) => void;
   isRecurring?: boolean;
   reduceMotion: boolean;
@@ -523,6 +548,7 @@ interface DayTaskRowProps {
 
 function DayTaskRow({
   task,
+  subtasks,
   onUnassign,
   isRecurring = false,
   reduceMotion,
@@ -531,7 +557,7 @@ function DayTaskRow({
   showProgressBars,
   transitionClass,
 }: DayTaskRowProps) {
-  const progress = getTaskProgress(task.id);
+  const progress = getTaskProgress(subtasks, task.id);
   const paddingClass = density === 'compact' ? 'p-2' : 'p-3';
 
   const handleClick = () => {

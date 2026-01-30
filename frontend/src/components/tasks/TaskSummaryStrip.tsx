@@ -4,7 +4,7 @@
  */
 
 import { useMemo } from 'react';
-import { useTasksStore } from '../../stores/tasksStore';
+import { useAllSubtasks } from '../../hooks/useSubtasks';
 import { useSettingsStore } from '../../stores/settingsStore';
 import type { Task } from '../../types';
 import { parseDateLocal } from '../../shared/lib/time.utils';
@@ -14,7 +14,7 @@ interface TaskSummaryStripProps {
 }
 
 export function TaskSummaryStrip({ task }: TaskSummaryStripProps) {
-  const subtasksRaw = useTasksStore((s) => s.subtasks);
+  const { subtasks: subtasksRaw } = useAllSubtasks();
   const showProgressBars = useSettingsStore((s) => s.showProgressBars);
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
 

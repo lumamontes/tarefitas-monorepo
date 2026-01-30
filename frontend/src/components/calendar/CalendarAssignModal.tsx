@@ -5,7 +5,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { useTasksStore } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { updateTask } from '../../stores/tasksStore';
 
@@ -16,7 +16,7 @@ interface CalendarAssignModalProps {
 }
 
 export function CalendarAssignModal({ dateStr, onClose, onAssign }: CalendarAssignModalProps) {
-  const tasks = useTasksStore((s) => s.tasks);
+  const { tasks } = useTasks();
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const density = useSettingsStore((s) => s.density);
   const fontScale = useSettingsStore((s) => s.fontScale);

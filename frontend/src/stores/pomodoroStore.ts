@@ -50,14 +50,25 @@ export const usePomodoroStore = create<PomodoroStore>()((set, get) => ({
   currentTaskId: null,
 
   initializeStore: () => {
+    const state = get();
     const durations = getDurations();
-    const mode = get().mode;
-    set({
-      minutes: durations[mode],
-      seconds: 0,
-      isActive: false,
-      hasFinished: false,
-    });
+    const mode = state.mode;
+    const expectedMinutes = durations[mode];
+    
+    // Only update if state is different to prevent unnecessary re-renders
+    if (
+      state.minutes !== expectedMinutes ||
+      state.seconds !== 0 ||
+      state.isActive !== false ||
+      state.hasFinished !== false
+    ) {
+      set({
+        minutes: expectedMinutes,
+        seconds: 0,
+        isActive: false,
+        hasFinished: false,
+      });
+    }
   },
 
   setMode: (mode) => {

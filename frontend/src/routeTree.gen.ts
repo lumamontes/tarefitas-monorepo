@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PomodoroPopupRouteImport } from './routes/pomodoro-popup'
 import { Route as PomodoroRouteImport } from './routes/pomodoro'
 import { Route as FocusRouteImport } from './routes/focus'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -25,6 +26,11 @@ const TasksRoute = TasksRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PomodoroPopupRoute = PomodoroPopupRouteImport.update({
+  id: '/pomodoro-popup',
+  path: '/pomodoro-popup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PomodoroRoute = PomodoroRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarRoute
   '/focus': typeof FocusRoute
   '/pomodoro': typeof PomodoroRoute
+  '/pomodoro-popup': typeof PomodoroPopupRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
   '/onboarding/nome': typeof OnboardingNomeRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarRoute
   '/focus': typeof FocusRoute
   '/pomodoro': typeof PomodoroRoute
+  '/pomodoro-popup': typeof PomodoroPopupRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
   '/onboarding/nome': typeof OnboardingNomeRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/focus': typeof FocusRoute
   '/pomodoro': typeof PomodoroRoute
+  '/pomodoro-popup': typeof PomodoroPopupRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
   '/onboarding/nome': typeof OnboardingNomeRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/focus'
     | '/pomodoro'
+    | '/pomodoro-popup'
     | '/settings'
     | '/tasks'
     | '/onboarding/nome'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/focus'
     | '/pomodoro'
+    | '/pomodoro-popup'
     | '/settings'
     | '/tasks'
     | '/onboarding/nome'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/focus'
     | '/pomodoro'
+    | '/pomodoro-popup'
     | '/settings'
     | '/tasks'
     | '/onboarding/nome'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   FocusRoute: typeof FocusRoute
   PomodoroRoute: typeof PomodoroRoute
+  PomodoroPopupRoute: typeof PomodoroPopupRoute
   SettingsRoute: typeof SettingsRoute
   TasksRoute: typeof TasksRoute
   OnboardingNomeRoute: typeof OnboardingNomeRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pomodoro-popup': {
+      id: '/pomodoro-popup'
+      path: '/pomodoro-popup'
+      fullPath: '/pomodoro-popup'
+      preLoaderRoute: typeof PomodoroPopupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pomodoro': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   FocusRoute: FocusRoute,
   PomodoroRoute: PomodoroRoute,
+  PomodoroPopupRoute: PomodoroPopupRoute,
   SettingsRoute: SettingsRoute,
   TasksRoute: TasksRoute,
   OnboardingNomeRoute: OnboardingNomeRoute,

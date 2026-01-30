@@ -1,9 +1,9 @@
 /**
- * Store init hook — initializes persistence and stores on mount
+ * Store init hook — initializes stores on mount.
+ * Settings are loaded once in App; use options.pomodoro for pomodoro init.
  */
 
-import { useEffect } from 'react';
-import { useSettingsStore } from '../stores/settingsStore';
+import { useEffect, useRef } from 'react';
 import { initializePomodoroStore } from '../stores/pomodoroStore';
 
 interface InitOptions {
@@ -14,13 +14,13 @@ interface InitOptions {
 }
 
 export function useStoreInit(options: InitOptions = {}): void {
+  const hasInitialized = useRef({ pomodoro: false });
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (options.settings) {
-      useSettingsStore.getState().initializeSettings?.();
-    }
-    if (options.pomodoro) {
+    if (options.pomodoro && !hasInitialized.current.pomodoro) {
       initializePomodoroStore();
+      hasInitialized.current.pomodoro = true;
     }
-  }, [options.settings, options.pomodoro]);
+  }, [options.pomodoro]);
 }

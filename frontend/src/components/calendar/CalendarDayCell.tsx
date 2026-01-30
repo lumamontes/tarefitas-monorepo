@@ -5,6 +5,7 @@
  */
 
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useTasks } from '../../hooks/useTasks';
 import { getTaskCountForDate } from '../../stores/tasksStore';
 import { getTodayString, parseDateLocal } from '../../shared/lib/time.utils';
 
@@ -33,9 +34,10 @@ export function CalendarDayCell({
   onSelect,
   tabIndex = -1
 }: CalendarDayCellProps) {
+  const { tasks } = useTasks();
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const fontScale = useSettingsStore((s) => s.fontScale);
-  const taskCount = getTaskCountForDate(dateStr);
+  const taskCount = getTaskCountForDate(tasks, dateStr);
   const hasTasks = taskCount > 0;
 
   const transitionClass = reduceMotion ? '' : 'transition-all duration-150';

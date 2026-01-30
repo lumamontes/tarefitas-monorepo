@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useTasksStore } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
 import { useNDStore } from '../../stores/ndStore';
 import { shouldShowCelebration, getCelebrationLevel } from '../../stores/ndStore';
 
@@ -21,7 +22,7 @@ import { RoutineTemplates } from '../routines/RoutineTemplates';
 
 export function NDDashboard() {
   const ndSettings = useSettingsStore((s) => s.ndSettings);
-  const tasks = useTasksStore((s) => s.tasks);
+  const { tasks } = useTasks();
   const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
   const contextState = useNDStore((s) => s.contextState);
   const getStreakMessage = useNDStore((s) => s.getStreakMessage);

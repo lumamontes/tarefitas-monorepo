@@ -5,13 +5,16 @@
 
 import { PomodoroTimer } from '../PomodoroTimer';
 import { useTasksStore } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
 import { usePomodoroStore } from '../../stores/pomodoroStore';
 import { useMiniTimerStore } from '../../stores/miniTimerStore';
 import { enableMiniTimer, disableMiniTimer, openPopupWindow } from '../../stores/miniTimerStore';
 import { Button } from '../ui/Button';
 
 export function PomodoroView() {
-  const selectedTask = useTasksStore((s) => s.getSelectedTask());
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const { tasks } = useTasks();
+  const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
   const isPomodoroActive = usePomodoroStore((s) => s.isActive);
   const miniEnabled = useMiniTimerStore((s) => s.miniEnabled);
   const popupEnabled = useMiniTimerStore((s) => s.popupEnabled);

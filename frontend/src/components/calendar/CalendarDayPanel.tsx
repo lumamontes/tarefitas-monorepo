@@ -12,6 +12,8 @@ import {
   selectTask,
   updateTask,
 } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
+import { useAllSubtasks } from '../../hooks/useSubtasks';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { setCurrentSection } from '../../stores/settingsStore';
 import { parseDateLocal, getTodayString } from '../../shared/lib/time.utils';
@@ -30,6 +32,8 @@ const MONTHS = [
 type FilterType = 'all' | 'scheduled' | 'routines';
 
 export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
+  const { tasks } = useTasks();
+  const { subtasks } = useAllSubtasks();
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const density = useSettingsStore((s) => s.density);
   const fontScale = useSettingsStore((s) => s.fontScale);
@@ -37,16 +41,15 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
   const [filter, setFilter] = useState<FilterType>('all');
   const [showAssignModal, setShowAssignModal] = useState(false);
 
-  // Separate scheduled tasks from recurring tasks
   const scheduledTasks = useMemo(() => {
     if (!dateStr) return [];
-    return getScheduledTasksForDate(dateStr);
-  }, [dateStr]);
+    return getScheduledTasksForDate(tasks, dateStr);
+  }, [tasks, dateStr]);
 
   const recurringTasks = useMemo(() => {
     if (!dateStr) return [];
-    return getRecurringTasksForDate(dateStr);
-  }, [dateStr]);
+    return getRecurringTasksForDate(tasks, dateStr);
+  }, [tasks, dateStr]);
 
   // Filter tasks based on selected filter
   const displayedScheduledTasks = useMemo(() => {
@@ -245,7 +248,7 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
                   ) : (
                     <div className={spacingClass}>
                       {displayedScheduledTasks.map((task) => {
-                        const progress = getTaskProgress(task.id);
+                        const progress = getTaskProgress(subtasks, task.id);
                         return (
                           <TaskRow
                             key={task.id}
@@ -289,7 +292,7 @@ export function CalendarDayPanel({ dateStr }: CalendarDayPanelProps) {
                   ) : (
                     <div className={spacingClass}>
                       {displayedRecurringTasks.map((task) => {
-                        const progress = getTaskProgress(task.id);
+                        const progress = getTaskProgress(subtasks, task.id);
                         return (
                           <TaskRow
                             key={task.id}

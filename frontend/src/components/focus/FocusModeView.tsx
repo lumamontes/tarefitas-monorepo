@@ -5,13 +5,17 @@
  */
 
 import { useTasksStore } from '../../stores/tasksStore';
+import { useTasks } from '../../hooks/useTasks';
+import { useSubtasks } from '../../hooks/useSubtasks';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { usePomodoroStore } from '../../stores/pomodoroStore';
 import { PomodoroTimer } from '../PomodoroTimer';
 
 export function FocusModeView() {
-  const selectedTask = useTasksStore((s) => s.getSelectedTask());
-  const subtasks = useTasksStore((s) => s.getSelectedTaskSubtasks());
+  const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
+  const { tasks } = useTasks();
+  const { subtasks } = useSubtasks(selectedTaskId);
+  const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
   const updateSettingsAction = useSettingsStore((s) => s.updateSettings);
   const isPomodoroActive = usePomodoroStore((s) => s.isActive);
 
