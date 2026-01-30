@@ -1,8 +1,3 @@
-/**
- * NDSettingsSection Component
- * Settings panel specifically for neurodivergent-friendly features
- */
-
 import { useSettingsStore } from '../../stores/settingsStore';
 
 const defaultNDSettings = {
@@ -38,18 +33,13 @@ export function NDSettingsSection() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-theme-text mb-2">
-          Recursos Neurodivergentes
-        </h3>
         <p className="text-sm text-theme-muted mb-6">
-          Configurações específicas para TDAH e autismo
+          Configurações específicas para você.
         </p>
       </div>
 
       {/* Executive Function Support */}
       <div className="space-y-4">
-        <h4 className="font-medium text-theme-text">Suporte às Funções Executivas</h4>
-        
         <div className="space-y-3">
           <label className="flex items-center gap-3">
             <input
@@ -109,8 +99,6 @@ export function NDSettingsSection() {
 
       {/* ADHD-Specific Features */}
       <div className="space-y-4">
-        <h4 className="font-medium text-theme-text">Recursos para TDAH</h4>
-        
         <div className="space-y-3">
           <label className="flex items-center gap-3">
             <input
@@ -158,8 +146,6 @@ export function NDSettingsSection() {
 
       {/* Autism-Specific Features */}
       <div className="space-y-4">
-        <h4 className="font-medium text-theme-text">Recursos para Autismo</h4>
-        
         <div className="space-y-3">
           <label className="flex items-center gap-3">
             <input
@@ -254,13 +240,6 @@ export function NDSettingsSection() {
             </select>
           </div>
         </div>
-      </div>
-
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          💙 Estas configurações foram projetadas com base em pesquisas sobre neurodivergência. 
-          Ajuste conforme suas necessidades específicas - você é o especialista em seu próprio cérebro!
-        </p>
       </div>
     </div>
   );

@@ -171,7 +171,7 @@ export function TasksDataProvider({ children }: { children: React.ReactNode }) {
 
   const wrapDbAction = useMemo(
     () =>
-      <T>(fn: () => Promise<T>): Promise<T> =>
+      <T,>(fn: () => Promise<T>): Promise<T> =>
         fn().catch((e) => {
           if (isTauriRequiredError(e)) {
             throw new Error(
@@ -198,16 +198,19 @@ export function TasksDataProvider({ children }: { children: React.ReactNode }) {
     },
     async updateTask(id, updates) {
       return wrapDbAction(async () => {
+        let status: 'active' | 'completed' | 'archived' | undefined;
+        if (updates.archived !== undefined) {
+          status = updates.archived ? 'archived' : 'active';
+        } else if (updates.completed !== undefined) {
+          status = updates.completed ? 'completed' : 'active';
+        }
         await updateTaskUc.updateTask(id, {
           title: updates.title,
           description: updates.description ?? null,
           due_date: updates.scheduledDate ?? null,
-          status:
-            updates.archived !== undefined
-              ? updates.archived
-                ? 'archived'
-                : 'active'
-              : undefined,
+          recurring: updates.recurring,
+          energy_tag: updates.energyTag ?? null,
+          status,
         });
         invalidateTasks();
       });

@@ -5,12 +5,17 @@
 
 export type TaskStatus = 'active' | 'completed' | 'archived';
 
+/** JSON: null | {"type":"daily"} | {"type":"weekly","daysOfWeek":[0,1,...]} */
+export type RecurringJson = string | null;
+
 export interface TaskRow {
   id: string;
   title: string;
   description: string | null;
   status: TaskStatus;
   due_date: string | null; // YYYY-MM-DD
+  recurring: RecurringJson; // JSON string for recurrence
+  energy_tag: string | null; // optional user-defined energy tag (e.g. "high", "low")
   updated_at: number; // Unix ms
   deleted_at: number | null; // Unix ms, tombstone
 }

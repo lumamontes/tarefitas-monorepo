@@ -35,12 +35,15 @@ export interface Task {
   updatedAt: Date;
   order: number;
   archived: boolean;
+  completed: boolean; // task marked done (status === 'completed')
   // Calendar associations
   scheduledDate?: string;        // YYYY-MM-DD (local date, no time)
   recurring?: {
     type: "daily" | "weekly";
     daysOfWeek?: number[];       // 0–6 (Sun–Sat), only for weekly
   };
+  /** Optional energy tag (user-defined, visual only). */
+  energyTag?: string;
 }
 
 export type Section = 'tasks' | 'calendar' | 'pomodoro' | 'dashboard' | 'configuracoes';
@@ -82,9 +85,10 @@ export interface SettingsState {
   fontScale: "sm" | "md" | "lg" | "xl";
   density: "cozy" | "compact";
   showProgressBars: boolean;
+  /** Show time-distance labels (today / soon / later / far). User can disable entirely (MVP #5). */
+  showTimeDistanceLabels: boolean;
   reduceMotion: boolean;
   soundEnabled: boolean;
-  pomodoroSound: "none" | "white-noise" | "pink-noise" | "brown-noise" | "rain" | "cafe";
   soundVolume: number;
   tickSoundEnabled: boolean;
   focusModeEnabled: boolean;

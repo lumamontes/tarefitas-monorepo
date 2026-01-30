@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { isTauri } from '../shared/lib/tauri-env';
 
 export interface MiniTimerPosition {
   x: number;
@@ -20,7 +21,7 @@ interface MiniTimerState {
 interface MiniTimerStore extends MiniTimerState {
   enableMiniTimer: () => void;
   disableMiniTimer: () => void;
-  openPopupWindow: () => boolean;
+  openPopupWindow: () => Promise<boolean>;
   setMiniTimerPosition: (pos: MiniTimerPosition) => void;
   toggleMiniTimerCollapsed: () => void;
 }
@@ -35,7 +36,31 @@ export const useMiniTimerStore = create<MiniTimerStore>()((set) => ({
 
   disableMiniTimer: () => set({ miniEnabled: false, popupEnabled: false }),
 
-  openPopupWindow: () => {
+  openPopupWindow: async () => {
+    if (isTauri()) {
+      try {
+        const { WebviewWindow } = await import('@tauri-apps/api/webview');
+        const url =
+          typeof window !== 'undefined'
+            ? `${window.location.origin}/pomodoro-popup`
+            : '/pomodoro-popup';
+        const w = new WebviewWindow('pomodoro-popup', {
+          url,
+          width: 380,
+          height: 420,
+          title: 'Pomodoro',
+        });
+        return new Promise<boolean>((resolve) => {
+          w.once('tauri://error', () => resolve(false));
+          w.once('tauri://created', () => {
+            set({ popupEnabled: true });
+            resolve(true);
+          });
+        });
+      } catch {
+        return false;
+      }
+    }
     try {
       const w = window.open(
         '/pomodoro-popup',
@@ -65,7 +90,7 @@ export function disableMiniTimer(): void {
   useMiniTimerStore.getState().disableMiniTimer();
 }
 
-export function openPopupWindow(): boolean {
+export function openPopupWindow(): Promise<boolean> {
   return useMiniTimerStore.getState().openPopupWindow();
 }
 

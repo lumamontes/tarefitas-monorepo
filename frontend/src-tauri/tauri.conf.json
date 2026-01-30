@@ -25,8 +25,8 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "shortDescription": "Calm planning for neurodivergent minds — tasks, pomodoro, and clarity.",
-    "longDescription": "Tarefitas is a neurodivergent-first planner focused on calm, clarity, and self-regulation. Tasks, Pomodoro focus timer, and a calm interface — no productivity pressure.",
+    "shortDescription": "Planejamento tranquilo para sua rotina.",
+    "longDescription": "Tarefitas é um planejador tranquilo para pessoas com dificuldades de gerenciar sua rotina. Tarefas, cronômetro de foco Pomodoro. ",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

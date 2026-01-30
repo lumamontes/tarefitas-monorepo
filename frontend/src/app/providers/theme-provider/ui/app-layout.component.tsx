@@ -11,9 +11,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const density = useSettingsStore((state) => state.density);
   const reduceMotion = useSettingsStore((state) => state.reduceMotion);
-  const themeId = useSettingsStore((state) => state.themeId);
 
   return (
     <div

@@ -157,8 +157,8 @@ export function PomodoroTimer() {
         </div>
 
         {/* Timer Display */}
-        <div className="mb-8">
-          <div className={`text-6xl font-mono font-bold ${modeInfo.textColor} mb-4`}>
+        <div className="mb-8" aria-live="polite" aria-atomic="true">
+          <div className={`text-6xl font-mono font-bold ${modeInfo.textColor} mb-4`} role="timer" aria-label={`Tempo restante: ${minutes} minutos e ${seconds} segundos`}>
             {formatTime(minutes, seconds)}
           </div>
           

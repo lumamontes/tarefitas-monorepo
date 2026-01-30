@@ -16,12 +16,12 @@ export function SettingsPage() {
   const [expandedSection, setExpandedSection] = useState<string | null>('aparencia');
 
   const sections = [
-    { id: 'neurodivergente', title: 'Recursos Neurodivergentes', component: NDSettingsSection },
+    { id: 'dados', title: 'Dados', component: DataSection },
     { id: 'aparencia', title: 'Aparência', component: AppearanceSection },
     { id: 'tipografia', title: 'Tipografia', component: TypographySection },
     { id: 'acessibilidade', title: 'Acessibilidade', component: AccessibilitySection },
     { id: 'sons', title: 'Pomodoro & Sons', component: SoundSection },
-    { id: 'dados', title: 'Dados', component: DataSection },
+    { id: 'neurodivergente', title: 'Recursos', component: NDSettingsSection },
   ];
 
   const toggleSection = (sectionId: string) => {
@@ -55,7 +55,7 @@ export function SettingsPage() {
                 Configurações Recomendadas
               </h3>
               <p className="text-xs text-theme-muted">
-                As configurações padrão foram escolhidas especialmente para usuários neurodivergentes. 
+                As configurações padrão foram escolhidas especialmente para você. 
                 Sinta-se livre para explorar e personalizar conforme suas necessidades.
               </p>
             </div>

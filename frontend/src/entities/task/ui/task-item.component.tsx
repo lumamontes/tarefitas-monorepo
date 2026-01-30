@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { Task, useTaskStore } from '..';
 import { formatDateDisplay, getTimeDistance } from '../../../shared/lib/time.utils';
+import { useSettingsStore } from '../../../stores/settingsStore';
 import { Button } from '../../../shared/ui';
 import { toast } from '../../../shared/ui/toast.component';
 
@@ -17,6 +18,7 @@ interface TaskItemProps {
 
 export function TaskItem({ task, showDate = false, hideProgress = false }: TaskItemProps) {
   const { updateTask, deleteTask, updateSubtask } = useTaskStore();
+  const showTimeDistanceLabels = useSettingsStore((s) => s.showTimeDistanceLabels);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -68,7 +70,7 @@ export function TaskItem({ task, showDate = false, hideProgress = false }: TaskI
               {showDate && task.date && (
                 <div className="flex items-center gap-2 mt-2 text-xs text-theme-muted">
                   <span>{formatDateDisplay(task.date)}</span>
-                  {timeDistance && (
+                  {showTimeDistanceLabels && timeDistance && (
                     <span className={`px-2 py-0.5 rounded-full ${
                       timeDistance === 'today' ? 'bg-blue-100 text-blue-800' :
                       timeDistance === 'soon' ? 'bg-yellow-100 text-yellow-800' :

@@ -16,6 +16,7 @@ import * as updateSubtaskUc from '../domain/usecases/updateSubtask';
 import * as deleteSubtaskUc from '../domain/usecases/deleteSubtask';
 import * as toggleSubtaskUc from '../domain/usecases/toggleSubtask';
 import * as reorderSubtasksUc from '../domain/usecases/reorderSubtasks';
+import * as toggleTaskCompleteUc from '../domain/usecases/toggleTaskComplete';
 
 /** Pure helper for filtered list — use with data from useTasks() + useAllSubtasks(). */
 export function computeFilteredTasks(
@@ -44,6 +45,7 @@ export function computeFilteredTasks(
       break;
     case 'completed':
       filtered = filtered.filter((task) => {
+        if (task.completed) return true;
         const taskSubtasks = subtasks.filter((s) => s.taskId === task.id);
         if (taskSubtasks.length === 0) return false;
         return taskSubtasks.every((s) => s.done);
@@ -162,7 +164,6 @@ function wrapDbAction<T>(fn: () => Promise<T>): Promise<T> {
 export async function addTask(
   task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'order'>
 ): Promise<string> {
-  alert('addTask');
   return wrapDbAction(async () => {
     const row = await createTaskUc.createTask({
       title: task.title,
@@ -175,21 +176,31 @@ export async function addTask(
   });
 }
 
+export async function toggleTaskComplete(id: string): Promise<void> {
+  return wrapDbAction(async () => {
+    await toggleTaskCompleteUc.toggleTaskComplete(id);
+    invalidateTasks();
+  });
+}
+
 export async function updateTask(
   id: string,
   updates: Partial<Omit<Task, 'id' | 'createdAt'>>
 ): Promise<void> {
   return wrapDbAction(async () => {
+    let status: 'active' | 'completed' | 'archived' | undefined;
+    if (updates.archived !== undefined) {
+      status = updates.archived ? 'archived' : 'active';
+    } else if (updates.completed !== undefined) {
+      status = updates.completed ? 'completed' : 'active';
+    }
     await updateTaskUc.updateTask(id, {
       title: updates.title,
       description: updates.description ?? null,
       due_date: updates.scheduledDate ?? null,
-      status:
-        updates.archived !== undefined
-          ? updates.archived
-            ? 'archived'
-            : 'active'
-          : undefined,
+      recurring: updates.recurring,
+      energy_tag: updates.energyTag ?? null,
+      status,
     });
     invalidateTasks();
   });

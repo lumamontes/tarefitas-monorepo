@@ -28,7 +28,9 @@ export function MiniPomodoro() {
   const miniCollapsed = useMiniTimerStore((s) => s.miniCollapsed);
   const selectedTaskId = useTasksStore((s) => s.selectedTaskId);
   const { tasks } = useTasks();
-  const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) ?? null;
+  const selectedTask = selectedTaskId
+    ? tasks.find((task) => task.id === selectedTaskId) ?? null
+    : null;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -179,7 +181,7 @@ export function MiniPomodoro() {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                {miniTimer.miniCollapsed ? (
+                {miniCollapsed ? (
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

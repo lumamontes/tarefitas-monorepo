@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { useSettingsStore } from './settingsStore';
+import { playPomodoroFinishSound } from '../shared/lib/celebration.utils';
 
 export type PomodoroMode = 'focus' | 'break' | 'longBreak';
 
@@ -112,6 +113,7 @@ export const usePomodoroStore = create<PomodoroStore>()((set, get) => ({
               }
             : {}),
         });
+        playPomodoroFinishSound();
       }
     }, 1000);
   },

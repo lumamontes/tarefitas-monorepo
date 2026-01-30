@@ -22,7 +22,7 @@ type CalendarTab = 'page' | 'grid';
 export function CalendarView() {
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const density = useSettingsStore((s) => s.density);
-  const [tab, setTab] = useState<CalendarTab>('page');
+  const [tab, setTab] = useState<CalendarTab>('grid');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth());
@@ -135,22 +135,9 @@ export function CalendarView() {
   const transitionClass = reduceMotion ? '' : 'transition-all duration-300';
   const paddingClass = density === 'compact' ? 'p-4' : 'p-6';
 
-  // Tab bar: Vista página (default) | Vista calendário
+  // Tab bar: Vista calendário (default) | Vista página (folders)
   const tabBar = (
     <div className="flex border-b border-theme-border bg-theme-panel shrink-0">
-      <button
-        type="button"
-        onClick={() => setTab('page')}
-        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 ${transitionClass} ${
-          tab === 'page'
-            ? 'border-theme-accent text-theme-text'
-            : 'border-transparent text-theme-muted hover:text-theme-text'
-        }`}
-        aria-pressed={tab === 'page'}
-      >
-        <FileText className="w-4 h-4" aria-hidden />
-        Vista página
-      </button>
       <button
         type="button"
         onClick={() => setTab('grid')}
@@ -164,10 +151,23 @@ export function CalendarView() {
         <CalendarDays className="w-4 h-4" aria-hidden />
         Vista calendário
       </button>
+      <button
+        type="button"
+        onClick={() => setTab('page')}
+        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 ${transitionClass} ${
+          tab === 'page'
+            ? 'border-theme-accent text-theme-text'
+            : 'border-transparent text-theme-muted hover:text-theme-text'
+        }`}
+        aria-pressed={tab === 'page'}
+      >
+        <FileText className="w-4 h-4" aria-hidden />
+        Vista página
+      </button>
     </div>
   );
 
-  // Page view (Year > Month > Day, collapsible) - full width
+  // Page view (folders: Year > Month > Day)
   if (tab === 'page') {
     return (
       <div data-section="calendar" className="h-full flex flex-col bg-theme-panel overflow-hidden">
@@ -179,52 +179,41 @@ export function CalendarView() {
     );
   }
 
-  // Mobile view: single column (grid tab only)
-  if (isMobileView) {
-    return (
-      <div 
-        data-section="calendar" 
-        className={`h-full flex flex-col bg-theme-panel overflow-hidden ${transitionClass}`}
-      >
-        <div className={`${paddingClass} overflow-y-auto`}>
-          <CalendarHeader
-            year={currentYear}
-            month={currentMonth}
-            onPreviousMonth={handlePreviousMonth}
-            onNextMonth={handleNextMonth}
-            onToday={handleToday}
-          />
-          
-          <CalendarMonthGrid
-            year={currentYear}
-            month={currentMonth}
-            selectedDate={selectedDate}
-            onDateSelect={handleDateSelect}
-            onMonthChange={handleMonthChange}
-          />
-        </div>
+  // Grid tab: calendar is default; always show tab bar so user can switch to folders
+  const gridContent = isMobileView ? (
+    <>
+      <div className={`${paddingClass} overflow-y-auto`}>
+        <CalendarHeader
+          year={currentYear}
+          month={currentMonth}
+          onPreviousMonth={handlePreviousMonth}
+          onNextMonth={handleNextMonth}
+          onToday={handleToday}
+        />
 
-        {/* Mobile Day Panel - Show when date selected */}
-        {selectedDate && (
-          <div className="border-t border-theme-border bg-theme-sidebar">
-            <CalendarDayPanel dateStr={selectedDate} />
-          </div>
-        )}
+        <CalendarMonthGrid
+          year={currentYear}
+          month={currentMonth}
+          selectedDate={selectedDate}
+          onDateSelect={handleDateSelect}
+          onMonthChange={handleMonthChange}
+        />
       </div>
-    );
-  }
 
-  // Desktop view: resizable two-panel layout
-  return (
-    <div 
+      {selectedDate && (
+        <div className="border-t border-theme-border bg-theme-sidebar">
+          <CalendarDayPanel dateStr={selectedDate} />
+        </div>
+      )}
+    </>
+  ) : (
+    <div
       ref={containerRef}
-      data-section="calendar" 
-      className={`h-full flex bg-theme-panel overflow-hidden ${transitionClass}`}
+      className={`h-full flex overflow-hidden ${transitionClass}`}
     >
-      {/* Calendar Panel - Left Side (Resizable) */}
-      <div 
+      <div
         style={{ width: `${leftPanelWidth}px` }}
-        className={`shrink-0 flex flex-col bg-theme-panel border-r border-theme-border`}
+        className="shrink-0 flex flex-col bg-theme-panel border-r border-theme-border"
       >
         <div className={`${paddingClass} shrink-0`}>
           <CalendarHeader
@@ -235,7 +224,7 @@ export function CalendarView() {
             onToday={handleToday}
           />
         </div>
-        
+
         <div className={`flex-1 min-h-0 ${paddingClass} pt-0`}>
           <CalendarMonthGrid
             year={currentYear}
@@ -247,16 +236,26 @@ export function CalendarView() {
         </div>
       </div>
 
-      {/* Resizable Handle */}
       <ResizableHandle
         onMouseDown={startResize}
         onKeyDown={handleKeyDown}
         isResizing={isResizing}
       />
 
-      {/* Day Details Panel - Right Side */}
       <div className="flex-1 min-w-0 bg-theme-sidebar">
         <CalendarDayPanel dateStr={selectedDate} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      data-section="calendar"
+      className="h-full flex flex-col bg-theme-panel overflow-hidden"
+    >
+      {tabBar}
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        {gridContent}
       </div>
     </div>
   );

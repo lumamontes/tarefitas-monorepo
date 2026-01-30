@@ -6,11 +6,12 @@ import type Database from '@tauri-apps/plugin-sql';
 import type { TaskRow } from '../../domain/types';
 import { getDb } from '../index';
 
+const TASK_COLUMNS = 'id, title, description, status, due_date, recurring, energy_tag, updated_at, deleted_at';
+
 export async function list(db?: Database): Promise<TaskRow[]> {
   const d = db ?? (await getDb());
   const rows = await d.select<TaskRow[]>(
-    `SELECT id, title, description, status, due_date, updated_at, deleted_at
-     FROM tasks WHERE deleted_at IS NULL ORDER BY updated_at DESC`
+    `SELECT ${TASK_COLUMNS} FROM tasks WHERE deleted_at IS NULL ORDER BY updated_at DESC`
   );
   return Array.isArray(rows) ? rows : [];
 }
@@ -19,8 +20,7 @@ export async function list(db?: Database): Promise<TaskRow[]> {
 export async function listAll(db?: Database): Promise<TaskRow[]> {
   const d = db ?? (await getDb());
   const rows = await d.select<TaskRow[]>(
-    `SELECT id, title, description, status, due_date, updated_at, deleted_at
-     FROM tasks ORDER BY updated_at DESC`
+    `SELECT ${TASK_COLUMNS} FROM tasks ORDER BY updated_at DESC`
   );
   return Array.isArray(rows) ? rows : [];
 }
@@ -28,7 +28,7 @@ export async function listAll(db?: Database): Promise<TaskRow[]> {
 export async function get(id: string, db?: Database): Promise<TaskRow | null> {
   const d = db ?? (await getDb());
   const rows = await d.select<TaskRow[]>(
-    'SELECT id, title, description, status, due_date, updated_at, deleted_at FROM tasks WHERE id = $1 AND deleted_at IS NULL',
+    `SELECT ${TASK_COLUMNS} FROM tasks WHERE id = $1 AND deleted_at IS NULL`,
     [id]
   );
   const row = Array.isArray(rows) ? rows[0] : rows;
@@ -38,13 +38,15 @@ export async function get(id: string, db?: Database): Promise<TaskRow | null> {
 export async function upsert(row: TaskRow, db?: Database): Promise<void> {
   const d = db ?? (await getDb());
   await d.execute(
-    `INSERT INTO tasks (id, title, description, status, due_date, updated_at, deleted_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO tasks (id, title, description, status, due_date, recurring, energy_tag, updated_at, deleted_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      ON CONFLICT (id) DO UPDATE SET
        title = excluded.title,
        description = excluded.description,
        status = excluded.status,
        due_date = excluded.due_date,
+       recurring = excluded.recurring,
+       energy_tag = excluded.energy_tag,
        updated_at = excluded.updated_at,
        deleted_at = excluded.deleted_at`,
     [
@@ -53,6 +55,8 @@ export async function upsert(row: TaskRow, db?: Database): Promise<void> {
       row.description ?? null,
       row.status ?? 'active',
       row.due_date ?? null,
+      row.recurring ?? null,
+      row.energy_tag ?? null,
       row.updated_at,
       row.deleted_at ?? null,
     ]

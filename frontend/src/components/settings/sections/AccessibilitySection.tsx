@@ -8,6 +8,7 @@ import { useSettingsStore } from '../../../stores/settingsStore';
 export function AccessibilitySection() {
   const focusModeEnabled = useSettingsStore((s) => s.focusModeEnabled);
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const showTimeDistanceLabels = useSettingsStore((s) => s.showTimeDistanceLabels);
   const themeId = useSettingsStore((s) => s.themeId);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const pauseEverything = useSettingsStore((s) => s.pauseEverything);
@@ -40,6 +41,31 @@ export function AccessibilitySection() {
         </label>
       </div>
       
+      {/* Time distance labels (MVP #5 — user can disable) */}
+      <div>
+        <h3 className="text-base font-medium text-theme-text mb-4">Datas</h3>
+        <label className="flex items-center justify-between p-3 rounded-lg border border-theme-border hover:border-theme-accent/50 transition-colors cursor-pointer">
+          <div>
+            <div className="font-medium text-theme-text">Mostrar proximidade das datas</div>
+            <div className="text-sm text-theme-muted">
+              Exibe indicações como &quot;hoje&quot;, &quot;em breve&quot;, &quot;depois&quot; ao lado das datas. Pode desativar para reduzir estímulo.
+            </div>
+          </div>
+          <button
+            onClick={() => updateSettings({ showTimeDistanceLabels: !showTimeDistanceLabels })}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent focus:ring-offset-2 ${
+              showTimeDistanceLabels ? 'bg-theme-accent' : 'bg-theme-border'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-theme-sidebar transition-transform ${
+                showTimeDistanceLabels ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </label>
+      </div>
+
       {/* Reduce Motion */}
       <div>
         <h3 className="text-base font-medium text-theme-text mb-4">Movimento</h3>

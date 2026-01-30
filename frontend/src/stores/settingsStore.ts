@@ -12,7 +12,7 @@ import { queryClient, queryKeys } from '../query/client';
 function persistSettingsToDb(): void {
   try {
     const state = useSettingsStore.getState();
-    const { previousSettings, ...toSave } = state;
+    const { previousSettings, isSidebarOpen, ...toSave } = state;
     setPreference('settings', toSave);
     queryClient.invalidateQueries({ queryKey: queryKeys.prefs() });
   } catch {
@@ -85,11 +85,11 @@ const defaultSettings: SettingsState = {
   fontScale: 'md',
   density: 'cozy',
   showProgressBars: true,
+  showTimeDistanceLabels: true,
   reduceMotion: typeof window !== 'undefined' 
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : true,
   soundEnabled: false,
-  pomodoroSound: 'none',
   soundVolume: 0.6,
   tickSoundEnabled: false,
   focusModeEnabled: false,
@@ -105,6 +105,7 @@ const defaultSettings: SettingsState = {
 interface SettingsStore extends SettingsState {
   currentSection: Section | 'configuracoes';
   previousSettings: SettingsState | null;
+  isSidebarOpen: boolean;
   
   // Actions
   updateSettings: (updates: Partial<SettingsState>) => void;
@@ -112,6 +113,8 @@ interface SettingsStore extends SettingsState {
   updatePomodoroSettings: (updates: Partial<SettingsState['pomodoro']>) => void;
   updateCustomPalette: (updates: Partial<CustomPalette>) => void;
   setCurrentSection: (section: Section | 'configuracoes') => void;
+  toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
   resetSettings: () => void;
   undoSettings: () => void;
   resetAppearance: () => void;
@@ -129,6 +132,7 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
   ...defaultSettings,
   currentSection: 'tasks',
   previousSettings: null,
+  isSidebarOpen: false,
 
   updateSettings: (updates) => {
     const current = get();
@@ -179,6 +183,14 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
         set({ currentSection: section });
       },
 
+  toggleSidebar: () => {
+    set({ isSidebarOpen: !get().isSidebarOpen });
+  },
+
+  setSidebarOpen: (open) => {
+    set({ isSidebarOpen: open });
+  },
+
   resetSettings: () => {
     set({ previousSettings: get() });
     set(defaultSettings);
@@ -219,7 +231,6 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
       previousSettings: current,
       ...current,
       soundEnabled: defaultSettings.soundEnabled,
-      pomodoroSound: defaultSettings.pomodoroSound,
       soundVolume: defaultSettings.soundVolume,
       tickSoundEnabled: defaultSettings.tickSoundEnabled,
     });
@@ -242,6 +253,7 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
       previousSettings: current,
       ...current,
       soundEnabled: false,
+      showTimeDistanceLabels: true,
       reduceMotion: true,
     });
     persistSettingsToDb();
@@ -268,7 +280,15 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
       const raw = await prefsRepo.get('settings', db);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<SettingsState>;
-        useSettingsStore.setState((s) => ({ ...s, ...parsed, previousSettings: null }));
+        const { isSidebarOpen: _restoredSidebar, ...rest } = parsed;
+        const isMobileViewport =
+          typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches;
+        useSettingsStore.setState((s) => ({
+          ...s,
+          ...rest,
+          previousSettings: null,
+          isSidebarOpen: isMobileViewport ? false : (s.isSidebarOpen ?? false),
+        }));
         useSettingsStore.getState().applyTheme();
         useSettingsStore.getState().applyFont();
       }

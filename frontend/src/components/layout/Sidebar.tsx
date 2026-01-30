@@ -1,9 +1,9 @@
 /**
  * Sidebar Component
- * Left sidebar with greeting, route-based nav, task filters, and pause mode (MVP #9)
+ * Left sidebar content: greeting, nav, task filters, pause mode (MVP #9).
+ * Layout (drawer vs static) is handled by SidebarLayout.
  */
 
-import { useState, useEffect } from 'react';
 import { Link, useMatchRoute } from '@tanstack/react-router';
 import { useAuthStore, getUserName } from '../../entities/user';
 import { usePauseMode } from '../../features/use-pause-mode';
@@ -18,18 +18,17 @@ const SECTIONS = [
   { path: '/settings', label: 'Configurações', icon: Settings },
 ] as const;
 
-export function Sidebar() {
+interface SidebarProps {
+  /** Called when user navigates (e.g. close drawer on mobile) */
+  onClose?: () => void;
+}
+
+export function Sidebar({ onClose }: SidebarProps) {
   const matchRoute = useMatchRoute();
   const user = useAuthStore((s) => s.user);
   const { isPaused, togglePauseMode } = usePauseMode();
-  const [isClient, setIsClient] = useState(false);
-
-  const userName = isClient ? getUserName() : 'Pessoa';
+  const userName = getUserName();
   const userInitial = userName.charAt(0).toUpperCase();
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const currentDate = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long',
@@ -40,6 +39,10 @@ export function Sidebar() {
   const formattedDate = `Hoje, ${currentDate.split(',')[1]?.trim()}`;
 
   const isTasksActive = !!matchRoute({ to: '/tasks' });
+
+  const handleNavClick = () => {
+    onClose?.();
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -64,6 +67,7 @@ export function Sidebar() {
               <Link
                 key={path}
                 to={path}
+                onClick={handleNavClick}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-accent focus-visible:ring-offset-2 focus-visible:ring-offset-theme-sidebar ${
                   isActive
                     ? 'bg-theme-accent/10 text-theme-text'

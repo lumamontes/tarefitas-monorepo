@@ -218,6 +218,28 @@ export function TaskDetailPanel({ onDelete }: TaskDetailPanelProps) {
         {/* Summary Strip */}
         <TaskSummaryStrip task={selectedTask} />
 
+        {/* Energy tag (MVP #6) — optional, visual only, user-defined */}
+        <div className="px-6 py-2 border-b border-theme-border flex items-center gap-2">
+          <label htmlFor="task-energy-tag" className="text-xs font-medium text-theme-muted shrink-0">
+            Energia
+          </label>
+          <select
+            id="task-energy-tag"
+            value={selectedTask.energyTag ?? ''}
+            onChange={(e) => {
+              const v = e.target.value || undefined;
+              updateTask(selectedTask.id, { energyTag: v });
+            }}
+            className="text-sm rounded-lg border border-theme-border bg-theme-bg text-theme-text px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-theme-accent"
+            aria-label="Indicação de energia para esta tarefa"
+          >
+            <option value="">Nenhuma</option>
+            <option value="alta">Alta</option>
+            <option value="media">Média</option>
+            <option value="baixa">Baixa</option>
+          </select>
+        </div>
+
         {/* Content */}
         <div className="py-6">
           {/* Subtasks - Primary Working Area */}

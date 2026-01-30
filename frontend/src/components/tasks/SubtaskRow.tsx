@@ -3,7 +3,7 @@
  * Individual subtask row with checkbox, title, and actions
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { toggleSubtaskDone, updateSubtask, deleteSubtask } from '../../stores/tasksStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import type { Subtask } from '../../types';
@@ -20,6 +20,7 @@ export function SubtaskRow({ subtask, isSelected, isOverwhelmMode, onSelect }: S
   const [isEditing, setIsEditing] = useState(false);
   const [titleValue, setTitleValue] = useState(subtask.title);
   const [showDelete, setShowDelete] = useState(false);
+  const cancelRef = useRef(false);
 
   const handleSave = () => {
     if (titleValue.trim()) {
@@ -31,6 +32,14 @@ export function SubtaskRow({ subtask, isSelected, isOverwhelmMode, onSelect }: S
   const handleCancel = () => {
     setTitleValue(subtask.title);
     setIsEditing(false);
+  };
+
+  const handleBlur = () => {
+    if (cancelRef.current) {
+      cancelRef.current = false;
+      return;
+    }
+    handleSave();
   };
 
   const handleToggle = () => {
@@ -50,6 +59,7 @@ export function SubtaskRow({ subtask, isSelected, isOverwhelmMode, onSelect }: S
           type="text"
           value={titleValue}
           onChange={(e) => setTitleValue(e.target.value)}
+          onBlur={handleBlur}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSave();
             if (e.key === 'Escape') handleCancel();
@@ -64,6 +74,8 @@ export function SubtaskRow({ subtask, isSelected, isOverwhelmMode, onSelect }: S
           Salvar
         </button>
         <button
+          type="button"
+          onMouseDown={() => { cancelRef.current = true; }}
           onClick={handleCancel}
           className="px-3 py-1 text-xs bg-theme-sidebar text-theme-text rounded hover:bg-theme-bg"
         >

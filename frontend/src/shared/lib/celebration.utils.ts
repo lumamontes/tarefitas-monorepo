@@ -4,12 +4,15 @@
  */
 
 import confetti from 'canvas-confetti';
+import { useSettingsStore } from '../../stores/settingsStore';
+
+const POMODORO_FINISH_SOUND_URL = '/finish.mp3';
 
 let finishAudio: HTMLAudioElement | null = null;
 
 export function initializeCelebration() {
   try {
-    finishAudio = new Audio('/assets/sounds/finish.wav');
+    finishAudio = new Audio(POMODORO_FINISH_SOUND_URL);
     finishAudio.preload = 'auto';
   } catch (error) {
     console.warn('Could not load finish sound:', error);
@@ -26,6 +29,22 @@ export function playFinishSound() {
     } catch (error) {
       console.warn('Error playing finish sound:', error);
     }
+  }
+}
+
+/**
+ * Play the pomodoro finish sound when a focus/break session ends.
+ * Respects soundEnabled and soundVolume from settings.
+ */
+export function playPomodoroFinishSound() {
+  const { soundEnabled, soundVolume } = useSettingsStore.getState();
+  if (!soundEnabled) return;
+  try {
+    const audio = new Audio(POMODORO_FINISH_SOUND_URL);
+    audio.volume = Math.max(0, Math.min(1, soundVolume));
+    audio.play().catch((err) => console.warn('Could not play pomodoro finish sound:', err));
+  } catch (error) {
+    console.warn('Error playing pomodoro finish sound:', error);
   }
 }
 

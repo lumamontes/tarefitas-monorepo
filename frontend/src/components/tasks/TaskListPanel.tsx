@@ -151,18 +151,19 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" role="list" aria-label="Lista de tarefas">
             {displayTasks.map((task, index) => {
               const progress = meta.getTaskProgress(task.id);
-              const isCompleted = progress.total > 0 && progress.percentage === 100;
+              const isCompleted =
+                task.completed || (progress.total > 0 && progress.percentage === 100);
               const isSelected = task.id === selectedTaskId;
               const isFocused = index === focusedIndex;
 
               return (
-                <button
+                <div
                   key={task.id}
-                  onClick={() => handleTaskClick(task.id)}
-                  className={`w-full text-left p-4 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-theme-accent ${
+                  role="listitem"
+                  className={`flex items-start gap-2 w-full text-left p-4 rounded-xl border transition-all ${
                     isCompleted
                       ? 'bg-theme-sidebar border-theme-border text-theme-muted opacity-60'
                       : isSelected
@@ -171,12 +172,36 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
                       ? 'bg-theme-bg border-theme-border text-theme-text'
                       : 'bg-theme-panel border-theme-border hover:border-theme-accent/50 text-theme-text'
                   }`}
-                  aria-pressed={isSelected}
                 >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      actions.updateTask(task.id, { completed: !task.completed });
+                    }}
+                    className="mt-0.5 w-5 h-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent"
+                    style={{
+                      backgroundColor: task.completed ? 'var(--accent)' : 'transparent',
+                      borderColor: task.completed ? 'var(--accent)' : 'var(--border)',
+                    }}
+                    aria-label={task.completed ? `Marcar "${task.title}" como não concluída` : `Marcar "${task.title}" como concluída`}
+                    aria-pressed={task.completed}
+                  >
+                    {task.completed && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleTaskClick(task.id)}
+                    className="flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-theme-accent focus:ring-inset rounded"
+                    aria-pressed={isSelected}
+                  >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        {isCompleted && (
+                        {isCompleted && !task.completed && (
                           <div className="w-5 h-5 rounded-full bg-theme-muted/30 flex items-center justify-center shrink-0">
                             <svg className="w-3 h-3 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -190,9 +215,10 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
                         </h3>
                       </div>
                       {task.description && (
-                        <p className="text-sm line-clamp-2 mb-2 text-theme-muted">
-                          {task.description}
-                        </p>
+                        <div
+                          className="text-sm line-clamp-2 mb-2 text-theme-muted prose prose-sm max-w-none prose-p:my-0 prose-p:leading-snug"
+                          dangerouslySetInnerHTML={{ __html: task.description }}
+                        />
                       )}
                       {/* Progress bar - Hidden in minimal mode or if user disabled */}
                       {showProgressBars && progress.total > 0 && !isMinimalMode && (
@@ -217,7 +243,8 @@ export function TaskListPanel({ onTaskSelect, onCreateTask }: TaskListPanelProps
                       )}
                     </div>
                   </div>
-                </button>
+                  </button>
+                </div>
               );
             })}
           </div>

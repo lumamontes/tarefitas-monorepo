@@ -36,6 +36,26 @@ npm run build
 npm run tauri dev
 ```
 
+## Distribution (Desktop & Mobile)
+
+App **name**, **description**, and **icon** are configured in:
+
+- **`src-tauri/tauri.conf.json`** — `productName` (display name on desktop and iOS/Android), `app.windows[0].title` (window title), `bundle.shortDescription` / `bundle.longDescription` (store listings), `bundle.icon` (paths under `src-tauri/icons/`).
+- **`src-tauri/Cargo.toml`** — package `description` (Rust metadata).
+- **`index.html`** — `<title>` and `<meta name="description">` (web view / PWA).
+- **`app.json`** — `name` and `description` (Expo / cross-platform).
+
+**Bundle identifier** (e.g. `com.tarefitas.app`) is in `tauri.conf.json` → `identifier`. Use the same value in App Store Connect and Google Play.
+
+**Icons**: Replace the images in `src-tauri/icons/` (e.g. `icon.icns`, `icon.ico`, `32x32.png`, `128x128.png`, and the `Square*` / `StoreLogo` assets for mobile). Tauri uses these for installers and app icons.
+
+After changing `productName` or `identifier`, rebuild the mobile app so the home screen and store show the new name:
+
+```bash
+pnpm tauri ios build    # iOS
+pnpm tauri android build  # Android (when configured)
+```
+
 ## Testing
 
 ```bash

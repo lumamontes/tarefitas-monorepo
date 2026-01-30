@@ -15,6 +15,7 @@ import { TaskListPanel } from './TaskListPanel';
 import { TaskForm } from './TaskForm';
 import { CelebrationOverlay } from '../celebration/CelebrationOverlay';
 import { ResizableHandle } from '../ui/ResizableHandle';
+import { Button } from '../ui/Button';
 import { useResizablePanels } from '../../hooks/useResizablePanels';
 import { toast } from '../../shared/ui/toast.component';
 import { useState, useEffect } from 'react';
@@ -29,6 +30,7 @@ export function TasksView() {
   
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
+  const [showDecompositionPrompt, setShowDecompositionPrompt] = useState<string | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationLevel, setCelebrationLevel] = useState<'small' | 'medium' | 'large'>('small');
 
@@ -71,12 +73,15 @@ export function TasksView() {
     try {
       if (editingTask) {
         await updateTask(editingTask.id, taskData);
+        setShowTaskForm(false);
+        setEditingTask(undefined);
       } else {
         const newTaskId = await addTask(taskData);
         useTasksStore.getState().selectTask(newTaskId);
+        setShowTaskForm(false);
+        setEditingTask(undefined);
+        setShowDecompositionPrompt(newTaskId);
       }
-      setShowTaskForm(false);
-      setEditingTask(undefined);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg.includes('Tauri app') || msg.includes('pnpm tauri dev')) {
@@ -130,7 +135,45 @@ export function TasksView() {
   // Mobile: Single column with conditional rendering
   // Desktop: 3-column layout (Sidebar already rendered) + TaskListPanel + TaskDetailPanel
   return (
-    <div data-section="tasks" className="h-full">
+    <div data-section="tasks" className="h-full relative">
+      {showDecompositionPrompt && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-theme-bg/80"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="decomposition-prompt-title"
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-theme-border bg-theme-panel p-6 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="decomposition-prompt-title" className="text-lg font-semibold text-theme-text mb-2">
+              Quer dividir em passos menores?
+            </h2>
+            <p className="text-sm text-theme-muted mb-6">
+              Você pode adicionar subtarefas manualmente no painel da tarefa!
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="primary"
+                size="medium"
+                onClick={() => setShowDecompositionPrompt(null)}
+                className="flex-1"
+              >
+                Sim
+              </Button>
+              <Button
+                variant="ghost"
+                size="medium"
+                onClick={() => setShowDecompositionPrompt(null)}
+                className="flex-1"
+              >
+                Agora não
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Celebration Overlay */}
       <CelebrationOverlay
         show={showCelebration}
@@ -177,7 +220,7 @@ export function TasksView() {
       </div>
 
       {/* Mobile: Single column with back button */}
-      <div className="lg:hidden h-full">
+      <div className="lg:hidden h-full bg-red-400">
         {selectedTask ? (
           <div className="h-full flex flex-col">
             {/* Back button */}

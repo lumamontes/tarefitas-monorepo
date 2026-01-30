@@ -90,7 +90,15 @@ export async function importBackup(
         await db.execute('DELETE FROM tasks');
         await db.execute('DELETE FROM prefs');
         for (const row of parsed.data.tasks) {
-          await tasksRepo.upsert(row as TaskRow, db);
+          const t = row as Partial<TaskRow>;
+          await tasksRepo.upsert(
+            {
+              ...row,
+              recurring: t.recurring ?? null,
+              energy_tag: t.energy_tag ?? null,
+            } as TaskRow,
+            db
+          );
         }
         for (const row of parsed.data.subtasks) {
           await subtasksRepo.upsert(row as SubtaskRow, db);
@@ -108,10 +116,17 @@ export async function importBackup(
         const subtaskMap = new Map(existingSubtasks.map((s) => [s.id, s]));
         const prefMap = new Map(existingPrefs.map((p) => [p.key, p]));
 
-        for (const row of parsed.data.tasks as TaskRow[]) {
-          const local = taskMap.get(row.id);
-          if (!local || row.updated_at >= local.updated_at) {
-            await tasksRepo.upsert(row, db);
+        for (const row of parsed.data.tasks as Partial<TaskRow>[]) {
+          const local = taskMap.get(row.id!);
+          if (!local || (row.updated_at ?? 0) >= local.updated_at) {
+            await tasksRepo.upsert(
+              {
+                ...row,
+                recurring: row.recurring ?? null,
+                energy_tag: row.energy_tag ?? null,
+              } as TaskRow,
+              db
+            );
           }
         }
 

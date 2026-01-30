@@ -1,126 +1,30 @@
 /**
  * SoundSection Component
- * Pomodoro sound and audio settings
+ * Pomodoro sound and audio settings (single finish sound)
  */
 
 import { useSettingsStore } from '../../../stores/settingsStore';
-import { useState, useRef, useEffect } from 'react';
 
 export function SoundSection() {
   const soundEnabled = useSettingsStore((s) => s.soundEnabled);
   const soundVolume = useSettingsStore((s) => s.soundVolume);
-  const pomodoroSound = useSettingsStore((s) => s.pomodoroSound);
   const tickSoundEnabled = useSettingsStore((s) => s.tickSoundEnabled);
   const pomodoro = useSettingsStore((s) => s.pomodoro);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const updatePomodoroSettings = useSettingsStore((s) => s.updatePomodoroSettings);
   const resetSounds = useSettingsStore((s) => s.resetSounds);
   const resetPomodoro = useSettingsStore((s) => s.resetPomodoro);
-  const [isPlayingTest, setIsPlayingTest] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const soundOptions = [
-    { value: 'none', label: 'Silencioso', description: 'Sem sons' },
-    { value: 'white-noise', label: 'Ruído Branco', description: 'Som constante e uniforme' },
-    { value: 'pink-noise', label: 'Ruído Rosa', description: 'Som mais suave que o branco' },
-    { value: 'brown-noise', label: 'Ruído Marrom', description: 'Som profundo e relaxante' },
-    { value: 'rain', label: 'Chuva', description: 'Som de chuva leve' },
-    { value: 'cafe', label: 'Café', description: 'Ambiente de cafeteria' }
-  ];
-
-  // Generate noise using Web Audio API
-  const generateNoise = (type: string, duration: number = 2) => {
-    if (typeof window === 'undefined' || !window.AudioContext) return;
-
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const bufferSize = audioContext.sampleRate * duration;
-    const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
-
-    for (let i = 0; i < bufferSize; i++) {
-      if (type === 'white-noise') {
-        output[i] = Math.random() * 2 - 1;
-      } else if (type === 'pink-noise') {
-        // Simplified pink noise approximation
-        output[i] = (Math.random() * 2 - 1) * Math.pow(Math.random(), 0.5);
-      } else if (type === 'brown-noise') {
-        // Simplified brown noise approximation
-        output[i] = (Math.random() * 2 - 1) * Math.pow(Math.random(), 0.25);
-      }
-    }
-
-    const source = audioContext.createBufferSource();
-    const gainNode = audioContext.createGain();
-    
-    source.buffer = noiseBuffer;
-    gainNode.gain.setValueAtTime(soundVolume * 0.3, audioContext.currentTime); // Lower volume for test
-    
-    source.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    source.start(0);
-    
-    return () => {
-      source.stop();
-      audioContext.close();
-    };
-  };
-
-  const playTestSound = (soundType: string) => {
-    if (isPlayingTest) {
-      stopTestSound();
-      return;
-    }
-
-    setIsPlayingTest(soundType);
-
-    if (soundType.includes('noise')) {
-      // Generate synthetic noise
-      const stopNoise = generateNoise(soundType);
-      setTimeout(() => {
-        stopNoise?.();
-        setIsPlayingTest(null);
-      }, 2000);
-    } else if (soundType === 'rain' || soundType === 'cafe') {
-      // For natural sounds, we'll simulate with a placeholder
-      // In a real implementation, you'd load actual audio files
-      const audio = new Audio();
-      audio.volume = soundVolume * 0.5;
-      
-      // Placeholder - in real app, load from /public/sounds/
-      console.log(`Playing ${soundType} sound (placeholder)`);
-      
-      setTimeout(() => {
-        setIsPlayingTest(null);
-      }, 2000);
-    }
-  };
-
-  const stopTestSound = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    setIsPlayingTest(null);
-  };
-
-  useEffect(() => {
-    return () => {
-      stopTestSound();
-    };
-  }, []);
 
   return (
     <div className="space-y-6">
-      
       {/* Master Sound Toggle */}
       <div>
-        <h3 className="text-base font-medium text-theme-text mb-4">Som Principal</h3>
+        <h3 className="text-base font-medium text-theme-text mb-4">Som</h3>
         <label className="flex items-center justify-between p-3 rounded-lg border border-theme-border hover:border-theme-accent/50 transition-colors cursor-pointer">
           <div>
-            <div className="font-medium text-theme-text">Ativar sons</div>
+            <div className="font-medium text-theme-text">Ativar som ao final do pomodoro</div>
             <div className="text-sm text-theme-muted">
-              Habilita todos os sons do aplicativo
+              Toca um som quando o tempo de foco ou pausa termina
             </div>
           </div>
           <button
@@ -138,66 +42,8 @@ export function SoundSection() {
         </label>
       </div>
 
-      {/* Pomodoro Sound Selection */}
-      <div className={soundEnabled ? '' : 'opacity-50 pointer-events-none'}>
-        <h3 className="text-base font-medium text-theme-text mb-4">Som do Pomodoro</h3>
-        <div className="space-y-3">
-          {soundOptions.map(option => (
-            <div key={option.value} className="flex items-center justify-between p-3 rounded-lg border border-theme-border">
-              <div className="flex-1">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="pomodoroSound"
-                    value={option.value}
-                    checked={pomodoroSound === option.value}
-                    onChange={(e) => updateSettings({ pomodoroSound: e.target.value as any })}
-                    disabled={!soundEnabled}
-                    className="w-4 h-4 text-theme-accent border-theme-border focus:ring-theme-accent focus:ring-2"
-                  />
-                  <div className="ml-3">
-                    <div className="font-medium text-theme-text">{option.label}</div>
-                    <div className="text-sm text-theme-muted">{option.description}</div>
-                  </div>
-                </label>
-              </div>
-              
-              {option.value !== 'none' && soundEnabled && (
-                <button
-                  onClick={() => playTestSound(option.value)}
-                  disabled={isPlayingTest !== null}
-                  className={`ml-3 px-3 py-1 text-xs rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-theme-accent ${
-                    isPlayingTest === option.value
-                      ? 'bg-red-100 border-red-300 text-red-700'
-                      : 'bg-theme-sidebar border-theme-border text-theme-text hover:border-theme-accent'
-                  }`}
-                >
-                  {isPlayingTest === option.value ? 'Parar' : 'Testar'}
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Audio Files Note */}
-        <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-          <div className="flex items-start gap-2">
-            <svg className="w-4 h-4 text-orange-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <div className="text-sm">
-              <p className="font-medium text-orange-800">Sons personalizados</p>
-              <p className="text-orange-700 mt-1">
-                Para adicionar seus próprios sons, coloque arquivos de áudio na pasta <code className="bg-orange-100 px-1 rounded">public/sounds/</code> 
-                com os nomes: rain.mp3, cafe.mp3, etc.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Volume Control */}
-      <div className={soundEnabled && pomodoroSound !== 'none' ? '' : 'opacity-50 pointer-events-none'}>
+      <div className={soundEnabled ? '' : 'opacity-50 pointer-events-none'}>
         <h3 className="text-base font-medium text-theme-text mb-4">Volume</h3>
         <div className="p-3 rounded-lg border border-theme-border">
           <div className="flex items-center gap-3">
@@ -211,7 +57,7 @@ export function SoundSection() {
               step="0.1"
               value={soundVolume}
               onChange={(e) => updateSettings({ soundVolume: parseFloat(e.target.value) })}
-              disabled={!soundEnabled || pomodoroSound === 'none'}
+              disabled={!soundEnabled}
               className="flex-1 h-2 bg-theme-border rounded-lg appearance-none cursor-pointer slider"
             />
             <svg className="w-4 h-4 text-theme-muted" fill="currentColor" viewBox="0 0 20 20">
@@ -224,7 +70,7 @@ export function SoundSection() {
 
       {/* Tick Sound */}
       <div className={soundEnabled ? '' : 'opacity-50 pointer-events-none'}>
-        <h3 className="text-base font-medium text-theme-text mb-4">Som de Tique</h3>
+        <h3 className="text-base font-medium text-theme-text mb-4">Som de tique</h3>
         <label className="flex items-center justify-between p-3 rounded-lg border border-theme-border hover:border-theme-accent/50 transition-colors cursor-pointer">
           <div>
             <div className="font-medium text-theme-text">Tique do relógio</div>
@@ -248,7 +94,7 @@ export function SoundSection() {
         </label>
       </div>
 
-      {/* Pomodoro Settings */}
+      {/* Pomodoro Durations */}
       <div>
         <h3 className="text-base font-medium text-theme-text mb-4">Durações do Pomodoro</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -296,12 +142,12 @@ export function SoundSection() {
 
       {/* Reset Sounds */}
       <div>
-        <h3 className="text-base font-medium text-theme-text mb-4">Restaurar Sons</h3>
+        <h3 className="text-base font-medium text-theme-text mb-4">Restaurar sons</h3>
         <div className="p-4 rounded-lg border border-theme-border bg-theme-sidebar">
           <div className="flex items-center justify-between">
             <div>
               <div className="font-medium text-theme-text mb-1">Restaurar configurações de som</div>
-              <div className="text-sm text-theme-muted">Volta sons e volume para os padrões</div>
+              <div className="text-sm text-theme-muted">Volta som e volume para os padrões</div>
             </div>
             <button
               onClick={resetSounds}
@@ -331,7 +177,6 @@ export function SoundSection() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
