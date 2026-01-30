@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "frontend",
+  "productName": "Tarefitas",
   "version": "0.1.0",
   "identifier": "com.tarefitas.app",
   "build": {
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "frontend",
+        "title": "Tarefitas",
         "width": 800,
         "height": 600
       }
@@ -25,6 +25,8 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "shortDescription": "Calm planning for neurodivergent minds — tasks, pomodoro, and clarity.",
+    "longDescription": "Tarefitas is a neurodivergent-first planner focused on calm, clarity, and self-regulation. Tasks, Pomodoro focus timer, and a calm interface — no productivity pressure.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
