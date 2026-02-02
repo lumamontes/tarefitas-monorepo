@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tarefitas-postgres
+    environment:
+      POSTGRES_DB: tarefitas
+      POSTGRES_USER: tarefitas
+      POSTGRES_PASSWORD: tarefitas
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tarefitas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tarefitas-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tarefitas-backend
+    environment:
+      # Database configuration
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: tarefitas
+      DATABASE_USER: tarefitas
+      DATABASE_PASSWORD: tarefitas
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tarefitas-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  tarefitas-network:
+    driver: bridge
